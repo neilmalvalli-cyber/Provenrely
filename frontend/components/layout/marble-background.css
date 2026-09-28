@@ -1,3 +1,4 @@
+/* Still marble photograph behind the console; the gradient shows until it loads or if it fails. */
 .marble-background {
   position: fixed;
   inset: 0;
@@ -7,31 +8,16 @@
   background: linear-gradient(125deg, #ece9e5, #f6f3ee 48%, #d7d9e2);
 }
 
-/* Static still of the marble scene; the gradient above shows until it loads or if it fails. */
 .marble-background--still {
   background:
     url("/environment/marble-still.webp") center / cover no-repeat,
     linear-gradient(125deg, #ece9e5, #f6f3ee 48%, #d7d9e2);
 }
 
-.marble-background canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
-}
-
-/* Only text on exposed marble changes. Existing dark surfaces keep their ink. */
-.marble-console main {
-  --color-fg: #292d38;
-  --color-fg-2: #454b59;
-  --color-muted: #535b6c;
-  color: var(--color-fg);
-}
-
-.marble-console :is(aside, header),
-.marble-console main :is(.glass, .bg-panel, .bg-panel-2, .bg-panel-3, .bg-deep, .bg-void, .bg-base) {
-  --color-fg: #f5f6f8;
-  --color-fg-2: #c4c9d3;
-  --color-muted: #b7bcc8;
-  color: var(--color-fg);
+/* Scrim: a light, neutral veil so the glass and its text stay readable over the brightest and darkest patches. */
+.marble-background::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(240, 239, 243, 0.18);
 }

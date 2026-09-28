@@ -52,13 +52,16 @@ export function NotificationsMenu() {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        className={cn("relative rounded-md p-2 text-fg-2 hover:bg-white/5 hover:text-fg", open && "bg-white/5 text-fg")}
+        className={cn(
+          "relative inline-flex size-10 items-center justify-center rounded-full border border-line bg-panel text-fg-2 hover:bg-panel-2 hover:text-fg",
+          open && "bg-panel-2 text-fg",
+        )}
         aria-label={`Notifications${unread ? `, ${unread} unread` : ""}`}
         aria-expanded={open}
         aria-haspopup="menu"
       >
-        <Bell className="size-4" />
-        {unread > 0 && <span className="absolute right-1.5 top-1.5 size-1.5 rounded-full bg-violet" />}
+        <Bell className="size-[18px]" />
+        {unread > 0 && <span className="absolute right-2.5 top-2.5 size-1.5 rounded-full bg-violet" />}
       </button>
 
       <AnimatePresence>

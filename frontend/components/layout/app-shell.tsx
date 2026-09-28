@@ -1,12 +1,13 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
-import { Flag, Keyboard, LayoutGrid, Menu, ScanSearch, Search, ShieldAlert, ShieldCheck, X } from "lucide-react";
+import { motion } from "framer-motion";
+import { Flag, Keyboard, LayoutGrid, Plus, ScanSearch, Search, ShieldAlert, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { Logo, LogoMark } from "@/components/brand/Logo";
-import { CommandPaletteProvider, Kbd, useCommandPalette } from "@/components/navigation/command-palette";
+import { Eyebrow, GlassShell, IconButton, PillLink } from "@/components/console/kit";
+import { CommandPaletteProvider, useCommandPalette } from "@/components/navigation/command-palette";
 import { NotificationsMenu } from "@/components/navigation/notifications-menu";
 import { DemoBadge } from "@/components/ui/badges";
 import { ConnectButton } from "@/components/wallet/connect-button";
@@ -16,159 +17,179 @@ import { mstTestnet } from "@/lib/chain/mst";
 import { env } from "@/lib/config/env";
 import { SPRING } from "@/lib/motion";
 import { cn } from "@/lib/utils";
+import "@/components/console/console-theme.css";
 import "./marble-background.css";
 
-const NAV = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutGrid, keys: "G D" },
+const OVERVIEW = [{ href: "/dashboard", label: "Dashboard", icon: LayoutGrid, keys: "G D" }];
+const TOOLS = [
   { href: "/scan", label: "Scan", icon: ScanSearch, keys: "G S" },
   { href: "/verify", label: "Verify", icon: ShieldCheck, keys: "G V" },
   { href: "/shield", label: "Shield", icon: ShieldAlert, keys: "G H" },
   { href: "/issuer", label: "Issuer", icon: Flag, keys: "G I" },
 ];
+const NAV = [...OVERVIEW, ...TOOLS];
 
-function NavList({ onNavigate }: { onNavigate?: () => void }) {
+const isActive = (pathname: string, href: string) => pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
+
+/** Big heading in the top bar: a greeting on the dashboard, the section name elsewhere. */
+function heading(pathname: string) {
+  if (pathname.startsWith("/dashboard")) return { title: "Hi, Investigator", sub: "Dashboard" };
+  if (pathname.startsWith("/certificate")) return { title: "Certificate", sub: "Document" };
+  const item = NAV.find((n) => isActive(pathname, n.href));
+  return { title: item?.label ?? "Console", sub: "Tools" };
+}
+
+function NavItem({ href, label, icon: Icon, keys }: (typeof NAV)[number]) {
   const pathname = usePathname();
+  const active = isActive(pathname, href);
   return (
-    <ul className="flex flex-col gap-0.5">
-      {NAV.map(({ href, label, icon: Icon, keys }) => {
-        const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
-        return (
-          <li key={href}>
-            <Link
-              href={href}
-              onClick={onNavigate}
-              className={cn(
-                "group relative flex h-9 items-center gap-3 rounded-lg px-3 text-[14px] transition-colors",
-                active ? "text-fg" : "text-fg-2 hover:bg-white/[0.03] hover:text-fg",
-              )}
-            >
-              {active && <motion.span layoutId="nav-active" transition={SPRING} className="absolute inset-0 rounded-lg bg-white/[0.06]" />}
-              {active && (
-                <motion.span layoutId="nav-bar" transition={SPRING} className="absolute inset-y-2.5 left-0 w-[2px] rounded-full bg-violet shadow-[0_0_10px_rgba(139,108,248,0.9)]" />
-              )}
-              <Icon className={cn("relative size-4", active ? "text-violet-300" : "text-muted group-hover:text-fg-2")} />
-              <span className="relative flex-1">{label}</span>
-              <span className="relative hidden font-mono text-[10px] text-muted opacity-0 transition-opacity group-hover:opacity-100 lg:inline">{keys}</span>
-            </Link>
-          </li>
-        );
-      })}
-    </ul>
-  );
-}
-
-/** No accounts: the wallet is the identity. The footer only states which data mode is active. */
-function SidebarFooter() {
-  return (
-    <div className="rounded-lg px-3 py-2 text-[12.5px] leading-relaxed text-muted">
-      {env.useMocks ? (
-        <>
-          <span className="text-amber-200">Sample data mode.</span> API responses are simulated; on-chain reads are live.
-        </>
-      ) : (
-        <>Live API · {mstTestnet.name}</>
-      )}
-    </div>
-  );
-}
-
-function TopBar({ onMenu }: { onMenu: () => void }) {
-  const { open, openShortcuts } = useCommandPalette();
-  return (
-    <header className="no-print sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-line bg-base/75 px-4 backdrop-blur-2xl backdrop-saturate-150 sm:px-6">
-      <button onClick={onMenu} className="-ml-1 rounded-md p-1.5 text-fg-2 lg:hidden" aria-label="Open menu">
-        <Menu className="size-5" />
-      </button>
-      <Link href="/dashboard" className="lg:hidden" aria-label="Overview">
-        <LogoMark className="h-7" />
-      </Link>
-
-      <button
-        onClick={open}
-        className="hidden h-9 w-full max-w-sm items-center gap-2.5 rounded-lg border border-line bg-white/[0.02] px-3 text-left text-[13.5px] text-muted transition-colors hover:border-line-strong hover:text-fg-2 md:flex"
+    <li>
+      <Link
+        href={href}
+        aria-current={active ? "page" : undefined}
+        className={cn(
+          "group relative flex h-11 items-center gap-3 rounded-full px-4 text-[14px] font-medium transition-colors",
+          active ? "text-[#fff]" : "text-fg-2 hover:bg-[#f4f4f5] hover:text-fg",
+        )}
       >
-        <Search className="size-3.5" />
-        <span className="flex-1">Search addresses, certificates, tx hashes</span>
-        <span className="flex gap-1">
-          <Kbd>⌘</Kbd>
-          <Kbd>K</Kbd>
+        {active && <motion.span layoutId="nav-active" transition={SPRING} className="absolute inset-0 rounded-full bg-[#0b0b0c]" />}
+        <Icon className="relative size-[18px]" />
+        <span className="relative flex-1">{label}</span>
+        <span className={cn("relative hidden font-mono text-[10px] opacity-0 transition-opacity group-hover:opacity-100 lg:inline", active ? "text-[#fff]/60" : "text-muted")}>
+          {keys}
         </span>
-      </button>
+      </Link>
+    </li>
+  );
+}
 
-      <div className="ml-auto flex items-center gap-2">
-        <button onClick={open} className="rounded-md p-2 text-fg-2 hover:bg-white/5 md:hidden" aria-label="Search">
-          <Search className="size-4" />
+/** White sidebar card: wordmark, navigation with section labels, settings at the bottom. */
+function Sidebar() {
+  const { openShortcuts } = useCommandPalette();
+  return (
+    <aside className="no-print sticky top-10 hidden h-[calc(100dvh-5rem)] w-[248px] shrink-0 flex-col rounded-[var(--radius-card)] border border-black/[0.05] bg-[#fff] p-4 shadow-[var(--shadow-card)] lg:flex">
+      <Link href="/" className="mb-8 px-2 pt-1 text-[#0b0b0c]">
+        <Logo />
+      </Link>
+      <Eyebrow className="mb-2 px-4">Overview</Eyebrow>
+      <ul className="flex flex-col gap-1">
+        {OVERVIEW.map((n) => (
+          <NavItem key={n.href} {...n} />
+        ))}
+      </ul>
+      <Eyebrow className="mb-2 mt-6 px-4">Tools</Eyebrow>
+      <ul className="flex flex-col gap-1">
+        {TOOLS.map((n) => (
+          <NavItem key={n.href} {...n} />
+        ))}
+      </ul>
+
+      <div className="mt-auto">
+        <Eyebrow className="mb-2 px-4">Settings</Eyebrow>
+        <button
+          onClick={openShortcuts}
+          className="flex h-11 w-full items-center gap-3 rounded-full px-4 text-left text-[14px] font-medium text-fg-2 hover:bg-[#f4f4f5] hover:text-fg"
+        >
+          <Keyboard className="size-[18px]" /> Keyboard shortcuts
         </button>
-        <NetworkStatus className="hidden sm:flex" />
-        {env.useMocks && <DemoBadge className="hidden xl:inline-flex" />}
-        <button onClick={openShortcuts} className="hidden rounded-md p-2 text-fg-2 hover:bg-white/5 hover:text-fg lg:block" aria-label="Keyboard shortcuts">
-          <Keyboard className="size-4" />
-        </button>
+        <div className="mt-3 rounded-[var(--radius-tile)] bg-[#f4f4f5] px-4 py-3 text-[12.5px] leading-relaxed text-muted">
+          {env.useMocks ? (
+            <>
+              <span className="font-medium text-fg">Sample data mode.</span> API responses are simulated; on-chain reads are live.
+            </>
+          ) : (
+            <>Live API · {mstTestnet.name}</>
+          )}
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+function TopBar() {
+  const { open } = useCommandPalette();
+  const pathname = usePathname();
+  const { title, sub } = heading(pathname);
+  return (
+    <header className="no-print flex flex-wrap items-center gap-3 px-1 pb-5 pt-1 sm:gap-4 lg:pb-6">
+      <Link href="/dashboard" className="text-[#0b0b0c] lg:hidden" aria-label="Dashboard">
+        <LogoMark className="h-8" />
+      </Link>
+      <div className="min-w-0 flex-1">
+        <div className="hidden text-[13px] font-medium text-muted sm:block">{sub}</div>
+        <h1 className="truncate text-[26px] font-semibold leading-tight tracking-[-0.03em] text-fg sm:text-[34px]">{title}</h1>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <NetworkStatus className="hidden border-black/[0.08] bg-[#fff]/70 md:flex" />
+        {env.useMocks && <DemoBadge className="hidden bg-[#fff]/70 xl:inline-flex" />}
+        <PillLink href="/scan" className="hidden sm:inline-flex">
+          <Plus /> New scan
+        </PillLink>
+        <IconButton onClick={open} aria-label="Search (⌘K)" title="Search addresses, certificates, tx hashes">
+          <Search />
+        </IconButton>
         <NotificationsMenu />
         <ConnectButton />
+      </div>
+      <div className="w-full md:hidden">
+        <NetworkStatus className="w-fit border-black/[0.08] bg-[#fff]/70" />
       </div>
     </header>
   );
 }
 
-export function AppShell({ children }: { children: ReactNode }) {
-  const [drawer, setDrawer] = useState(false);
+/** Mobile: the sidebar becomes a bottom bar. */
+function BottomBar() {
   const pathname = usePathname();
+  return (
+    <nav
+      aria-label="Primary"
+      className="no-print fixed inset-x-3 bottom-3 z-40 rounded-full border border-[#fff]/70 bg-[#fff]/85 px-2 py-1.5 shadow-[0_18px_40px_-16px_rgba(11,11,12,0.35)] backdrop-blur-xl lg:hidden"
+      style={{ marginBottom: "env(safe-area-inset-bottom)" }}
+    >
+      <ul className="flex items-center justify-between">
+        {NAV.map(({ href, label, icon: Icon }) => {
+          const active = isActive(pathname, href);
+          return (
+            <li key={href} className="flex-1">
+              <Link
+                href={href}
+                aria-current={active ? "page" : undefined}
+                className={cn(
+                  "mx-auto flex h-12 max-w-[72px] flex-col items-center justify-center gap-0.5 rounded-full text-[10.5px] font-medium",
+                  active ? "bg-[#0b0b0c] text-[#fff]" : "text-fg-2",
+                )}
+              >
+                <Icon className="size-[18px]" />
+                {label}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
+  );
+}
 
-  useEffect(() => setDrawer(false), [pathname]);
-
+export function AppShell({ children }: { children: ReactNode }) {
   return (
     <CommandPaletteProvider>
-      <div className="marble-console relative isolate min-h-dvh">
+      <div className="console-theme marble-console relative isolate min-h-dvh">
         <div className="marble-background marble-background--still no-print" aria-hidden="true" />
 
-        <aside className="no-print fixed inset-y-0 left-0 z-40 hidden w-60 flex-col border-r border-line bg-void/80 px-3 py-4 backdrop-blur-xl lg:flex">
-          <Link href="/" className="mb-7 px-2">
-            <Logo />
-          </Link>
-          <NavList />
-          <div className="mt-auto">
-            <SidebarFooter />
-          </div>
-        </aside>
-
-        <AnimatePresence>
-          {drawer && (
-            <>
-              <motion.div
-                className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm lg:hidden"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={() => setDrawer(false)}
-              />
-              <motion.aside
-                className="fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-line bg-void px-3 py-4 lg:hidden"
-                initial={{ x: -300 }}
-                animate={{ x: 0 }}
-                exit={{ x: -300 }}
-                transition={SPRING}
-              >
-                <div className="mb-7 flex items-center justify-between px-2">
-                  <Logo />
-                  <button onClick={() => setDrawer(false)} className="rounded-md p-1.5 text-fg-2" aria-label="Close menu">
-                    <X className="size-5" />
-                  </button>
-                </div>
-                <NavList onNavigate={() => setDrawer(false)} />
-                <div className="mt-auto">
-                  <SidebarFooter />
-                </div>
-              </motion.aside>
-            </>
-          )}
-        </AnimatePresence>
-
-        <div className="relative lg:pl-60">
-          <TopBar onMenu={() => setDrawer(true)} />
-          <NetworkGuard />
-          <main className="relative mx-auto max-w-[1400px] px-4 py-8 sm:px-6 lg:px-10 lg:py-10">{children}</main>
+        <div className="p-2.5 pb-24 sm:p-4 sm:pb-24 lg:p-5">
+          <GlassShell className="mx-auto flex min-h-[calc(100dvh-2.5rem)] max-w-[1600px] gap-5 p-3 sm:p-5">
+            <Sidebar />
+            <div className="min-w-0 flex-1 pt-1">
+              <TopBar />
+              <NetworkGuard />
+              <main className="relative">{children}</main>
+            </div>
+          </GlassShell>
         </div>
+
+        <BottomBar />
       </div>
     </CommandPaletteProvider>
   );

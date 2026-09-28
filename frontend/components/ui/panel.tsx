@@ -37,9 +37,9 @@ export function PanelHeader({
   className?: string;
 }) {
   return (
-    <div className={cn("flex items-center justify-between gap-4 border-b border-line px-5 py-3.5", className)}>
+    <div className={cn("flex items-center justify-between gap-4 px-5 pb-1 pt-5 sm:px-6 sm:pt-6", className)}>
       <div className="min-w-0">
-        <h3 className="truncate text-[14.5px] font-medium tracking-[-0.005em] text-fg">{title}</h3>
+        <h3 className="truncate text-[17px] font-semibold tracking-[-0.01em] text-fg">{title}</h3>
         {description && <p className="mt-0.5 truncate text-[13px] text-muted">{description}</p>}
       </div>
       {action}
@@ -81,11 +81,11 @@ export function PageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <div className="flex flex-col gap-5 pb-8 md:flex-row md:items-end md:justify-between">
+    <div className="flex flex-col gap-4 px-1 pb-5 md:flex-row md:items-end md:justify-between">
       <div className="min-w-0">
-        {eyebrow && <div className="mb-2 flex items-center gap-2 text-[13.5px] text-muted">{eyebrow}</div>}
-        <h1 className="text-title text-fg">{title}</h1>
-        {description && <p className="mt-2 max-w-2xl text-[14px] leading-relaxed text-fg-2">{description}</p>}
+        {eyebrow && <div className="sr-only">{eyebrow}</div>}
+        <h2 className="text-[20px] font-semibold tracking-[-0.02em] text-fg">{title}</h2>
+        {description && <p className="mt-1 max-w-2xl text-[14px] leading-relaxed text-fg-2">{description}</p>}
       </div>
       {actions && <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>}
     </div>

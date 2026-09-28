@@ -4,14 +4,14 @@ import { forwardRef, type ComponentProps } from "react";
 import { cn } from "@/lib/utils";
 
 export const buttonVariants = cva(
-  "relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-[13px] font-medium tracking-[-0.005em] transition-[background,box-shadow,border-color,color,filter,transform] duration-150 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-40 [&_svg]:size-4 [&_svg]:shrink-0",
+  "btn relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-lg text-[13px] font-medium tracking-[-0.005em] transition-[background,box-shadow,border-color,color,filter,transform] duration-150 active:scale-[0.98] disabled:pointer-events-none disabled:opacity-40 [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
         primary:
-          "bg-brand text-white shadow-[0_1px_0_rgba(255,255,255,0.22)_inset,0_0_0_1px_rgba(114,80,238,0.6),0_6px_20px_-8px_rgba(114,80,238,0.8)] hover:brightness-110",
+          "btn-primary bg-brand text-white shadow-[0_1px_0_rgba(255,255,255,0.22)_inset,0_0_0_1px_rgba(114,80,238,0.6),0_6px_20px_-8px_rgba(114,80,238,0.8)] hover:brightness-110",
         secondary:
-          "border border-line-strong bg-white/[0.03] text-fg shadow-[0_1px_0_rgba(255,255,255,0.04)_inset] hover:border-white/[0.18] hover:bg-white/[0.06]",
+          "btn-secondary border border-line-strong bg-white/[0.03] text-fg shadow-[0_1px_0_rgba(255,255,255,0.04)_inset] hover:border-white/[0.18] hover:bg-white/[0.06]",
         ghost: "text-fg-2 hover:bg-white/[0.05] hover:text-fg",
         outline: "border border-violet/35 text-violet-200 hover:border-violet/60 hover:bg-violet/[0.08]",
         danger: "border border-danger/40 bg-danger/10 text-red-300 hover:bg-danger/20",
