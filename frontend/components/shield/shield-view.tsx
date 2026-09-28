@@ -117,8 +117,8 @@ export function ShieldView() {
         description="Transfers go through SafeSend, which checks the recipient against the flag registry and reverts on-chain if it is flagged."
       />
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="space-y-4">
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="bento-col">
           {!SAFESEND_READY && (
             <Card className="flex items-start gap-3 p-5 text-[14px] text-fg-2 sm:p-6">
               <Badge tone="warn">Not configured</Badge>
@@ -191,7 +191,7 @@ export function ShieldView() {
           <Outcome phase={phase} />
         </div>
 
-        <div className="space-y-4">
+        <div className="bento-col">
         <Card variant="dark">
           <PanelHeader title="Registry check" description="getFlag(recipient) on MST, read before you send." />
           <div className="p-5 sm:p-6">

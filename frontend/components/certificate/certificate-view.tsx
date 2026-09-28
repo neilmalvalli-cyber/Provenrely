@@ -144,7 +144,7 @@ export function CertificateView({ id }: { id: string }) {
   const txHash = anchor.state === "anchored" ? (anchor.txHash ?? c.anchor?.txHash ?? null) : null;
 
   return (
-    <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_340px] print:block">
+    <div className="grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_340px] print:block">
       {env.useMocks && (
         <p className="no-print flex items-center gap-2.5 rounded-[var(--radius-card)] bg-[#fff] px-5 py-3 text-[13px] text-fg-2 shadow-[var(--shadow-card)] xl:col-span-2">
           <span className="size-2 shrink-0 rounded-full bg-warn" />

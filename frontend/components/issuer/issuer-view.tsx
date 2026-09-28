@@ -149,7 +149,7 @@ export function IssuerView() {
     <>
       <PageHeader eyebrow="Issuer" title="Flag addresses" description="Issuers record fraud flags on MST. SafeSend blocks transfers to flagged addresses until the flag expires or is revoked." />
 
-      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_400px]">
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_400px]">
         <Card className="overflow-clip">
           <PanelHeader
             label="Registry"
@@ -227,7 +227,7 @@ export function IssuerView() {
             )}
           </div>
         </Card>
-        <Card variant="dark" className="self-start">
+        <Card variant="dark">
           <PanelHeader label="New flag" title="New flag" description="Record a fraud flag on MST." />
           <form onSubmit={submit} className="space-y-4 p-5 sm:p-6">
             {writeBlocker && (

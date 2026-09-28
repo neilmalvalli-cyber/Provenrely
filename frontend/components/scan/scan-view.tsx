@@ -71,7 +71,7 @@ export function ScanView() {
     <>
       <PageHeader eyebrow="Scan" title="Check an address" description="Get a risk verdict for any MST address, explained in plain language, and issue a certificate anchored on MST." />
 
-      <div className="space-y-4">
+      <div className="bento-col">
         <Card>
           <form onSubmit={runScan} className="p-5 sm:p-6">
             <Label htmlFor="address">Address</Label>
@@ -117,7 +117,11 @@ export function ScanView() {
         )}
 
         {scan.status === "idle" && (
-          <p className="px-1 text-[13.5px] text-muted">Enter an address to scan it. Nothing is written on-chain until you issue a certificate.</p>
+          <Card className="flex min-h-[220px] flex-col items-center justify-center p-8 text-center">
+            <ScanSearch className="size-7 text-muted" />
+            <div className="mt-3 text-[15px] font-semibold text-fg">The verdict will appear here</div>
+            <p className="mt-1 max-w-sm text-[13.5px] text-muted">Enter an address to scan it. Nothing is written on-chain until you issue a certificate.</p>
+          </Card>
         )}
 
         {scan.status === "done" && (
@@ -161,7 +165,7 @@ export function ScanView() {
               </div>
             </Card>
 
-            <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_380px]">
+            <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
             <Card>
               <PanelHeader label="Explain" title="What this means" />
               <div className="p-5 sm:p-6">

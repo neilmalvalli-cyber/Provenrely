@@ -184,3 +184,20 @@
   --doc-bg: #0b0b0c;
   --doc-accent: #ffffff;
 }
+
+/* Bento columns: cards stack with the same gap as the grid, and the last card grows so both columns end level. */
+.console-theme .bento-col {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.console-theme .bento-col > :last-child {
+  flex: 1 1 auto;
+}
+
+/* The page's last block grows to the bottom of the shell, so content cards end level with the sidebar card. */
+.console-theme .console-main > :last-child,
+.console-theme .console-page > :last-child {
+  flex: 1 1 auto;
+}

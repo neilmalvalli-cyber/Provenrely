@@ -67,7 +67,9 @@ function NavItem({ href, label, icon: Icon, keys }: (typeof NAV)[number]) {
 function Sidebar() {
   const { openShortcuts } = useCommandPalette();
   return (
-    <aside className="no-print sticky top-10 hidden h-[calc(100dvh-5rem)] w-[248px] shrink-0 flex-col rounded-[var(--radius-card)] border border-black/[0.05] bg-[#fff] p-4 shadow-[var(--shadow-card)] lg:flex">
+    <aside className="no-print hidden w-[248px] shrink-0 self-stretch rounded-[var(--radius-card)] border border-black/[0.05] bg-[#fff] shadow-[var(--shadow-card)] lg:block">
+      {/* The card runs the full height of the page; its menu stays in view while the content scrolls. */}
+      <div className="sticky top-10 flex h-[calc(100dvh-5rem)] max-h-full flex-col p-4">
       <Link href="/" className="mb-8 px-2 pt-1 text-[#0b0b0c]">
         <Logo />
       </Link>
@@ -101,6 +103,7 @@ function Sidebar() {
             <>Live API · {mstTestnet.name}</>
           )}
         </div>
+      </div>
       </div>
     </aside>
   );
@@ -181,10 +184,10 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="p-2.5 pb-24 sm:p-4 sm:pb-24 lg:p-5">
           <GlassShell className="mx-auto flex min-h-[calc(100dvh-2.5rem)] max-w-[1600px] gap-5 p-3 sm:p-5">
             <Sidebar />
-            <div className="min-w-0 flex-1 pt-1">
+            <div className="flex min-w-0 flex-1 flex-col pt-1">
               <TopBar />
               <NetworkGuard />
-              <main className="relative">{children}</main>
+              <main className="console-main relative flex flex-1 flex-col">{children}</main>
             </div>
           </GlassShell>
         </div>

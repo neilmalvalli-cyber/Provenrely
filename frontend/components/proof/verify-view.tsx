@@ -162,8 +162,8 @@ export function VerifyView() {
         description="The certificate's hash is recomputed in your browser and checked against MST. No account needed, and the verdict doesn't depend on our server."
       />
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="space-y-4">
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="bento-col">
           <Card>
             <PanelHeader label="Step 1" title="Load a certificate" />
             <div className="space-y-4 p-5 sm:p-6">
@@ -254,7 +254,13 @@ export function VerifyView() {
           )}
         </div>
 
-        <div className="space-y-4">
+        <div className="bento-col">
+          {env.useMocks && (
+            <Card className="flex items-start gap-3 px-5 py-4 text-[13px] text-fg-2">
+              <Badge tone="warn">Mock mode</Badge>
+              <span>Sample certificates hash correctly but are not anchored on MST.</span>
+            </Card>
+          )}
           <Card variant="dark">
             <PanelHeader label="How it works" title="What is checked" />
             <ol className="space-y-3 p-5 text-[13.5px] leading-relaxed text-fg-2">
@@ -270,12 +276,6 @@ export function VerifyView() {
               </li>
             </ol>
           </Card>
-          {env.useMocks && (
-            <Card className="flex items-start gap-3 px-5 py-4 text-[13px] text-fg-2">
-              <Badge tone="warn">Mock mode</Badge>
-              <span>Sample certificates hash correctly but are not anchored on MST.</span>
-            </Card>
-          )}
         </div>
       </div>
     </>
