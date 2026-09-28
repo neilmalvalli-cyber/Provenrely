@@ -100,4 +100,4 @@ tx hash.
 | 13 | Scan the certificate QR with the phone camera | Verify page opens: **VALID** | | |
 | 14 | Verify → Edit a field | **TAMPERED** | | |
 | 15 | Dashboard | Real counts (Transfers blocked shown once counted) | | |
-| 16 | Reload with the wallet locked, then unlock | Late-injection re-check connects without a full reload | | |
+| 16 | Open the site fresh inside BridgeKey's in-app browser | Wallet is detected even though the provider injects after page load (late-injection re-check); Connect works without a reload | n/a | |
