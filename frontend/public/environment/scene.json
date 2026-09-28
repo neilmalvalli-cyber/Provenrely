@@ -1,0 +1,45 @@
+{
+  "generator": "Blender 5.2.2 LTS \u00b7 build_scene.py",
+  "camera": {
+    "position": [
+      0.9,
+      1.0,
+      9.0
+    ],
+    "target": [
+      0.9,
+      0.62,
+      -0.0
+    ],
+    "fovDeg": 40.0
+  },
+  "sun": {
+    "direction": [
+      -0.70212,
+      0.45399,
+      0.54856
+    ],
+    "intensity": 5.2,
+    "color": [
+      1.0,
+      0.86,
+      0.7
+    ],
+    "angleDeg": 1.4
+  },
+  "lightmaps": {
+    "architecture": {
+      "file": "lightmap_architecture.webp",
+      "intensity": 3.32105
+    },
+    "floor": {
+      "file": "lightmap_floor.webp",
+      "intensity": 2.90366
+    }
+  },
+  "panorama": "panorama.hdr",
+  "materials": {
+    "architecture": "stone/stucco by material slot",
+    "floor": "terrazzo_floor"
+  }
+}
