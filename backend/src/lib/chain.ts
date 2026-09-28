@@ -55,7 +55,17 @@ export function createChain(config: Config): Chain {
   const wallet = config.relayerKey ? new Wallet(config.relayerKey, provider) : null;
   const signer = wallet ? new NonceManager(wallet) : null;
   const writer = signer ? (reader.connect(signer) as Contract) : null;
-  const overrides = config.legacyTx ? { type: 0 } : {};
+
+  /** Fee fields for a relayer transaction: the RPC's price, never below MIN_GAS_PRICE_GWEI (MST rejects < 1 gwei). */
+  async function overrides() {
+    const fee = await provider.getFeeData();
+    const floor = config.minGasPrice;
+    const atLeast = (v: bigint | null | undefined) => (v !== null && v !== undefined && v > floor ? v : floor);
+    if (config.legacyTx) return { type: 0, gasPrice: atLeast(fee.gasPrice) };
+    const tip = atLeast(fee.maxPriorityFeePerGas);
+    const max = atLeast(fee.maxFeePerGas);
+    return { maxPriorityFeePerGas: tip, maxFeePerGas: max > tip ? max : tip };
+  }
 
   async function send(label: string, call: () => Promise<ContractTransactionResponse>) {
     if (!writer) throw new ApiError(503, `${label} isn't configured on this server (no relayer key).`);
@@ -81,11 +91,11 @@ export function createChain(config: Config): Chain {
       return { active, issuer: f.issuer, reason: Number(f.reason), expiry: f.expiry };
     },
     async anchor(certHash, subject) {
-      const { receipt, timestamp } = await send("Anchoring", () => writer!.getFunction("anchorCertificate")(certHash, subject, overrides));
+      const { receipt, timestamp } = await send("Anchoring", async () => writer!.getFunction("anchorCertificate")(certHash, subject, await overrides()));
       return { certHash, txHash: receipt.hash as Hex, blockNumber: receipt.blockNumber, blockTimestamp: timestamp };
     },
     async logCustody(certHash, action) {
-      const { receipt, timestamp } = await send("Custody logging", () => writer!.getFunction("logCustody")(certHash, action, overrides));
+      const { receipt, timestamp } = await send("Custody logging", async () => writer!.getFunction("logCustody")(certHash, action, await overrides()));
       return { txHash: receipt.hash as Hex, timestamp };
     },
     latestBlock: () => provider.getBlockNumber(),

@@ -11,6 +11,7 @@ import { Input, Label } from "@/components/ui/input";
 import { Badge, Card } from "@/components/console/kit";
 import { PageHeader, PanelHeader } from "@/components/ui/panel";
 import { explorer } from "@/lib/chain/explorer";
+import { mstFees } from "@/lib/chain/fees";
 import { activeFlagsFromEvents, FLAG_REASONS, reasonLabel } from "@/lib/chain/flags";
 import { mstTestnet } from "@/lib/chain/mst";
 import { flagEvents, fromUnix, readRoles, registry, REGISTRY_READY, revokeEvents } from "@/lib/chain/registry";
@@ -92,11 +93,11 @@ export function IssuerView() {
       if (kind === "flag") {
         const call = { ...registry, functionName: "flag", args: [args.subject, args.reason!, args.evidenceHash!, args.expiry!] } as const;
         await client.simulateContract({ ...call, account: address });
-        hash = await writeContractAsync({ ...call, chainId: mstTestnet.id });
+        hash = await writeContractAsync({ ...call, chainId: mstTestnet.id, ...(await mstFees(client)) });
       } else {
         const call = { ...registry, functionName: "revoke", args: [args.subject] } as const;
         await client.simulateContract({ ...call, account: address });
-        hash = await writeContractAsync({ ...call, chainId: mstTestnet.id });
+        hash = await writeContractAsync({ ...call, chainId: mstTestnet.id, ...(await mstFees(client)) });
       }
       const receipt = await trackTx(client, hash, {
         pending: kind === "flag" ? "Flag pending…" : "Revoke pending…",

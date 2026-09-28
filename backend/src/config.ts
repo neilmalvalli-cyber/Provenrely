@@ -1,4 +1,4 @@
-import { getAddress, isAddress, parseEther } from "ethers";
+import { getAddress, isAddress, parseEther, parseUnits } from "ethers";
 import { parseLimit, type Limit } from "./lib/rate-limit.js";
 
 /** Runtime configuration from environment variables (see .env.example). Missing chain settings → "not configured" mode. */
@@ -23,6 +23,8 @@ export interface Config {
   relayerMinBalance: bigint;
   /** MST uses legacy (type 0) transactions. */
   legacyTx: boolean;
+  /** Floor for gas price / priority fee (wei). MST rejects anything below 1 gwei. */
+  minGasPrice: bigint;
   explorerApiUrl: string | null;
   issuerName: string;
   limits: { certificates: Limit; custody: Limit; scan: Limit; explain: Limit };
@@ -61,6 +63,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     relayerKey: key,
     relayerMinBalance: parseEther(str(env.RELAYER_MIN_BALANCE) ?? "0.01"),
     legacyTx: (env.MST_LEGACY_TX ?? "true") !== "false",
+    minGasPrice: parseUnits(str(env.MIN_GAS_PRICE_GWEI) ?? "1", "gwei"),
     // unset → MSTScan; set but empty → no explorer (e.g. a local Anvil chain)
     explorerApiUrl: env.EXPLORER_API_URL === undefined ? "https://testnet.mstscan.com/api" : str(env.EXPLORER_API_URL),
     issuerName: str(env.ISSUER_NAME) ?? "Provenrely",

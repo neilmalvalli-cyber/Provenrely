@@ -18,7 +18,7 @@ import { writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
-import { Contract, JsonRpcProvider, Wallet, formatEther, getAddress, isAddress, parseEther, type TransactionRequest } from "ethers";
+import { Contract, JsonRpcProvider, Wallet, formatEther, getAddress, isAddress, parseEther, parseUnits, type TransactionRequest } from "ethers";
 import registryAbi from "../src/abi/ProvenrelyRegistry.json" with { type: "json" };
 import safeSendAbi from "../src/abi/SafeSend.json" with { type: "json" };
 
@@ -40,6 +40,8 @@ const amount = parseEther(env("SCENARIO_AMOUNT") ?? "0.01");
 const gasBuffer = parseEther(env("SCENARIO_GAS_BUFFER") ?? "0.002");
 const probe = parseEther(env("SCENARIO_SAFESEND_AMOUNT") ?? "0.001");
 const REASON_INVESTMENT_SCAM = 2;
+/** MST rejects gas prices / tips below 1 gwei. */
+const minGasPrice = parseUnits(env("MIN_GAS_PRICE_GWEI") ?? "1", "gwei");
 
 const provider = new JsonRpcProvider(rpcUrl, chainId, { staticNetwork: true });
 const wallet = (k: string) => {
@@ -123,7 +125,14 @@ if (dryRun) {
 }
 
 // ---- run ----
-const overrides = async (): Promise<TransactionRequest> => (legacy ? { type: 0, gasPrice: (await provider.getFeeData()).gasPrice ?? undefined } : {});
+const overrides = async (): Promise<TransactionRequest> => {
+  const fee = await provider.getFeeData();
+  const atLeast = (v: bigint | null) => (v !== null && v > minGasPrice ? v : minGasPrice);
+  if (legacy) return { type: 0, gasPrice: atLeast(fee.gasPrice) };
+  const tip = atLeast(fee.maxPriorityFeePerGas);
+  const max = atLeast(fee.maxFeePerGas);
+  return { maxPriorityFeePerGas: tip, maxFeePerGas: max > tip ? max : tip };
+};
 const steps: { step: string; from: string; to: string; amount?: string; txHash: string; link: string; status: "success" | "reverted" }[] = [];
 
 async function record(step: string, from: string, to: string, value: bigint | undefined, send: () => Promise<{ hash: string }>) {

@@ -8,7 +8,8 @@
  *      (other lines — including keys — are left untouched and never printed) and fills the README's
  *      "Deployed contracts" section
  *
- * Usage (from backend/):  npm run post-deploy [-- --chain 91562037 --rpc <url> --explorer <url> --no-write]
+ * Usage (from backend/):  npm run post-deploy [-- --chain 91562037 --rpc <url> --explorer <url> --no-write
+ *                                               --also-frontend-env <path to another frontend/.env.local>]
  */
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
@@ -135,6 +136,18 @@ const beKeys = updateEnvFile(
   join(root, "backend", ".env.example"),
 );
 console.log(`\nWrote ${feKeys.join(", ")} → ${relative(root, fe)}`);
+// Another checkout's frontend (e.g. the one you run the dev server from): same non-secret values.
+const extraFe = arg("also-frontend-env");
+if (extraFe) {
+  updateEnvFile(extraFe, {
+    NEXT_PUBLIC_MST_CHAIN_ID: String(chainId),
+    NEXT_PUBLIC_MST_RPC_URL: rpcUrl,
+    NEXT_PUBLIC_MST_EXPLORER_URL: explorerUrl,
+    NEXT_PUBLIC_REGISTRY_ADDRESS: registry.address,
+    NEXT_PUBLIC_SAFESEND_ADDRESS: safeSend.address,
+  });
+  console.log(`Wrote the same NEXT_PUBLIC_* values → ${extraFe}`);
+}
 console.log(`Wrote ${beKeys.join(", ")} → ${relative(root, be)}  (RELAYER_PK and other secrets untouched)`);
 
 const table = [

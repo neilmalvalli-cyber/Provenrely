@@ -12,6 +12,7 @@ import { Input, Label } from "@/components/ui/input";
 import { Badge, Card } from "@/components/console/kit";
 import { DataField, PageHeader, PanelHeader } from "@/components/ui/panel";
 import { explorer } from "@/lib/chain/explorer";
+import { mstFees } from "@/lib/chain/fees";
 import { reasonLabel } from "@/lib/chain/flags";
 import { MST_CONFIGURED, mstTestnet } from "@/lib/chain/mst";
 import { fromUnix, readFlag, REGISTRY_READY } from "@/lib/chain/registry";
@@ -83,7 +84,7 @@ export function ShieldView() {
     const call = { address: env.safeSendAddress, abi: safeSendAbi, functionName: "send", args: [recipient], value } as const;
     setPhase({ state: "signing" });
     try {
-      const hash = await writeContractAsync({ ...call, chainId: mstTestnet.id, gas: SEND_GAS });
+      const hash = await writeContractAsync({ ...call, chainId: mstTestnet.id, gas: SEND_GAS, ...(await mstFees(client)) });
       setPhase({ state: "pending", hash });
       const receipt = await trackTx(client, hash, {
         pending: "Transfer pending…",
