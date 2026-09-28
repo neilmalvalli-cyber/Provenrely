@@ -85,3 +85,9 @@
   .sh-orbit-dot { display: none; }
   [data-live] .sh-float, [data-live] .sh-halo, [data-live] .sh-sweep::before { animation: none; }
 }
+
+/* On the light marble landing the glass scenes (drawn for a dark page) wash out; deepen them a little.
+   The S mark (.cmp-mark) is not inside .cmp-scenes, so it stays exactly as the intro hands it over. */
+.landing-light .cmp-scenes {
+  filter: saturate(1.35) contrast(1.18) brightness(0.9);
+}
