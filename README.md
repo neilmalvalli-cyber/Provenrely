@@ -1,66 +1,59 @@
-## Foundry
+# Provenrely
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+Evidence infrastructure for on-chain investigations, on **MST Testnet**.
 
-Foundry consists of:
+Provenrely protects a transfer in three layers, with MST as the trust layer:
 
-- **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
-- **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
-- **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
-- **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+| Layer | When | What it does |
+|---|---|---|
+| **Shield** | before a transfer | Issuers flag risky addresses on-chain; `SafeSend` reverts transfers to flagged recipients. |
+| **Certificate** | during an investigation | A scan's verdict is sealed into a certificate whose hash is anchored on MST. |
+| **Custody** | after | Every share or export of a certificate is logged on-chain. |
 
-## Documentation
+Anyone can verify a certificate without trusting our servers: the browser recomputes its hash and reads the anchor
+directly from MST.
 
-https://book.getfoundry.sh/
+## Repository layout
 
-## Usage
-
-### Build
-
-```shell
-$ forge build
+```
+frontend/   Next.js 16 app (React 19, TypeScript strict, Tailwind v4, wagmi + viem)
+backend/    API service — see backend/README.md for the contract the frontend expects
+src/        Solidity contracts (Foundry): ProvenrelyRegistry
+test/       Foundry tests
+script/     Foundry deploy scripts
+lib/        Foundry dependencies (git submodules: forge-std, openzeppelin-contracts)
 ```
 
-### Test
+## Contracts
 
-```shell
-$ forge test
+```bash
+git submodule update --init --recursive
+forge build
+forge test
 ```
 
-### Format
+See https://book.getfoundry.sh/ for Foundry itself.
 
-```shell
-$ forge fmt
+## Run the frontend
+
+```bash
+cd frontend
+cp .env.example .env.local   # then edit values
+npm install
+npm run dev                  # http://localhost:3000
 ```
 
-### Gas Snapshots
+With `NEXT_PUBLIC_USE_MOCKS=true` every API call returns clearly labelled sample data, so the UI works before the
+backend exists. On-chain reads (anchors, flags) always go to MST directly.
 
-```shell
-$ forge snapshot
-```
+## MST Testnet
 
-### Anvil
+| | |
+|---|---|
+| Chain ID | `91562037` (hex `0x5752035`) |
+| RPC | https://testnetrpc.mstblockchain.com |
+| Explorer | https://testnet.mstscan.com |
+| Currency | tMSTC, 18 decimals |
+| Wallet | BridgeKey (injected EIP-1193 provider) |
 
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+No secrets live in this repository. Configuration comes from `.env.local` files, which are git-ignored.

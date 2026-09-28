@@ -1,20 +1,40 @@
-# Compiler files
-cache/
+# dependencies and builds
+node_modules/
+.next/
 out/
+dist/
+build/
+*.tsbuildinfo
+next-env.d.ts
 
-# Commonly ignored directories
-.logs/
-.ignore/
-
-# Ignores development broadcast logs
-!/broadcast
-/broadcast/*/31337/
-/broadcast/**/dry-run/
-
-# Docs
-docs/
-
-# Dotenv file
+# environment: never commit real values (only the .env.example templates)
 .env
 .env.*
 !.env.example
+
+# python (backend)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# local tooling and notes
+.claude/
+.tmp/
+frontend/HANDOFF.md
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# contracts (Foundry, repo root)
+cache/
+.logs/
+.ignore/
+!/broadcast
+/broadcast/*/31337/
+/broadcast/**/dry-run/
+/docs/
