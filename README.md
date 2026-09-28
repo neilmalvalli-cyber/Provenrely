@@ -17,8 +17,8 @@ directly from MST.
 
 ```
 frontend/   Next.js 16 app (React 19, TypeScript strict, Tailwind v4, wagmi + viem)
-backend/    API service — see backend/README.md for the contract the frontend expects
-src/        Solidity contracts (Foundry): ProvenrelyRegistry
+backend/    API service (Express, TypeScript, ethers) — backend/README.md has the API contract
+src/        Solidity contracts (Foundry): ProvenrelyRegistry, SafeSend, Unflagged
 test/       Foundry tests
 script/     Foundry deploy scripts
 lib/        Foundry dependencies (git submodules: forge-std, openzeppelin-contracts)
@@ -43,8 +43,29 @@ npm install
 npm run dev                  # http://localhost:3000
 ```
 
-With `NEXT_PUBLIC_USE_MOCKS=true` every API call returns clearly labelled sample data, so the UI works before the
-backend exists. On-chain reads (anchors, flags) always go to MST directly.
+With `NEXT_PUBLIC_USE_MOCKS=true` every API call returns clearly labelled sample data, so the UI works without the
+backend. On-chain reads (anchors, flags) always go to MST directly.
+
+## Run the backend
+
+```bash
+cd backend
+cp .env.example .env   # then edit values
+npm ci
+npm run dev            # http://localhost:8000
+```
+
+Point the frontend at it with `NEXT_PUBLIC_API_URL=http://localhost:8000` and `NEXT_PUBLIC_USE_MOCKS=false`.
+
+## Deploy (all three parts)
+
+1. **Contracts** — `forge script` below; note the registry and SafeSend addresses it prints.
+2. **Backend** — `backend/Dockerfile` (or `npm run build && npm start`) with `REGISTRY_ADDRESS`, `RELAYER_PK` (the
+   relayer granted in step 1), `CORS_ORIGIN` (the frontend URL) and a persistent `DATA_DIR`.
+3. **Frontend** — any Next.js host (e.g. Vercel, root `frontend/`) with `NEXT_PUBLIC_REGISTRY_ADDRESS`,
+   `NEXT_PUBLIC_SAFESEND_ADDRESS`, `NEXT_PUBLIC_API_URL` (the backend URL) and `NEXT_PUBLIC_USE_MOCKS=false`.
+
+After changing a contract: `forge build`, then `cd frontend && npm run abi` regenerates both ABIs (CI checks this).
 
 ## MST Testnet
 
@@ -60,7 +81,9 @@ backend exists. On-chain reads (anchors, flags) always go to MST directly.
 
 ```bash
 # DEPLOYER_PK, ISSUER_ADDR, RELAYER_ADDR come from the environment (e.g. a git-ignored .env) — never pass a key on the command line
-forge script script/Deploy.s.sol:Deploy --rpc-url https://testnetrpc.mstblockchain.com --chain-id 91562037 --broadcast
+forge script script/Deploy.s.sol:Deploy --rpc-url https://testnetrpc.mstblockchain.com --chain-id 91562037 --broadcast --legacy
 ```
+
+MST uses legacy (type 0) transactions, hence `--legacy`. Try the command without `--broadcast` first for a dry run.
 
 No secrets live in this repository. Configuration comes from `.env` / `.env.local` files, which are git-ignored.

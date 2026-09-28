@@ -1,8 +1,40 @@
 # Provenrely — backend
 
-This folder is for the API service. The frontend (`../frontend`) calls the endpoints below at
-`NEXT_PUBLIC_API_URL`. Until the backend is ready, the frontend runs with `NEXT_PUBLIC_USE_MOCKS=true` and returns
-sample data of exactly these shapes, so both sides can be built in parallel.
+The API service (Express + TypeScript + ethers). The frontend (`../frontend`) calls the endpoints below at
+`NEXT_PUBLIC_API_URL`. With `NEXT_PUBLIC_USE_MOCKS=true` the frontend returns sample data of exactly these shapes
+instead, so either side can run alone.
+
+## Run
+
+```bash
+cd backend
+cp .env.example .env   # then fill in; never commit .env
+npm ci
+npm run dev            # http://localhost:8000  (npm run build && npm start for production)
+npm test               # hashing test vectors, scan rules, every endpoint over HTTP
+```
+
+| Variable | Purpose |
+|---|---|
+| `PORT` | default `8000` |
+| `CORS_ORIGIN` | the frontend's URL (comma-separated for several) |
+| `DATA_DIR` | certificate store (`certificates.json`); mount a volume here in production |
+| `MST_RPC_URL`, `MST_CHAIN_ID`, `MST_LEGACY_TX` | chain; MST uses legacy (type 0) transactions |
+| `EXPLORER_API_URL` | MSTScan's Etherscan-style API for recent transactions; empty = off |
+| `REGISTRY_ADDRESS` | deployed `ProvenrelyRegistry`; empty = flag checks and stats report "not configured" |
+| `RELAYER_PK` | key of the wallet holding `RELAYER`; anchors certificates and logs custody. Empty = certificates are stored unanchored (local development only) |
+
+`GET /health` → `{ "status": "ok", "registry": bool, "anchoring": bool }`.
+
+Docker: `docker build -t provenrely-api backend/` then run with the variables above and a volume on `/data`.
+
+### How a scan decides
+Score starts at 5; verdict is `HIGH_RISK` ≥ 70, `SUSPICIOUS` ≥ 35, else `SAFE`.
+- The address itself has an active flag in the registry → 95.
+- Received funds from flagged addresses (recent MSTScan history, each counterparty checked with `getFlag`) → +40, +10 per extra (max 3).
+- Sent funds to flagged addresses → +25.
+- Sent to ≥ 10 different wallets within 10 minutes → +20.
+If the registry or explorer can't be reached, the scan still answers and says what wasn't checked.
 
 > Request/response shapes below are the frontend's working contract. If you need to change one, update this file
 > and tell the frontend side — the TypeScript types in `frontend/lib/api/types.ts` mirror it.
@@ -58,10 +90,14 @@ Logs a share or export on-chain (`logCustody(certHash, action)`, 1 = share, 2 = 
 ```
 
 ### `GET /api/stats`
-Real counts only (from the chain or your database) — never placeholder numbers.
+Real counts only (from registry events) — never placeholder numbers. A count that can't be produced is `null`
+(the UI shows "—"). `transfersBlocked` is always `null` for now: a reverted `SafeSend.send` leaves no event to count.
 ```json
-{ "flagsIssued": 12, "certificatesAnchored": 48, "transfersBlocked": 3, "updatedAt": "2026-09-28T10:30:00Z" }
+{ "flagsIssued": 12, "certificatesAnchored": 48, "transfersBlocked": null, "updatedAt": "2026-09-28T10:30:00Z" }
 ```
+
+If the server has no relayer configured, `POST /api/certificates` returns the certificate without `anchor`, and
+custody returns `409`.
 
 ## Certificate format
 
@@ -96,8 +132,9 @@ expected = 0x3cf1dc97d956b7913a3d49837fecb6964384a87f0c40acff4316bba24b23042e
 
 ## Contracts (MST Testnet)
 
-Source of truth: `src/ProvenrelyRegistry.sol` (Foundry, repo root). The frontend's ABI is generated from its build
-output (`forge build`, then `cd frontend && npm run abi`), so this summary is for reading only.
+Source of truth: `src/ProvenrelyRegistry.sol` (Foundry, repo root). The frontend and backend ABIs are generated from
+its build output (`forge build`, then `cd frontend && npm run abi`; CI fails if they're stale), so this summary is for
+reading only.
 
 ```solidity
 struct Flag { address issuer; uint16 reason; bytes32 evidenceHash; uint64 expiry; bool revoked; }
@@ -125,7 +162,7 @@ event CustodyLogged(bytes32 indexed certHash, address indexed actor, uint8 actio
 error AlreadyFlagged(address subject);  error NotFlagged(address subject);  error NotAllowed();  error BadExpiry();
 error ZeroValue();  error AlreadyAnchored(bytes32 certHash);  error NotAnchored(bytes32 certHash);  error BadAction(uint8 action);
 
-// SafeSend — not in this repo yet; frontend/abi/safe-send.ts is hand-written until it is (npm run abi picks it up)
+// SafeSend (src/SafeSend.sol, guard in src/Unflagged.sol)
 function send(address payable to) payable;
 error RecipientFlagged(address to);
 ```

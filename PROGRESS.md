@@ -108,9 +108,32 @@ Files: `.gitattributes`, `test/ProvenrelyRegistry.t.sol` (fmt only), `frontend/s
 `frontend/lib/chain/flags.test.ts`, `frontend/components/{shield/shield-view,issuer/issuer-view,proof/verify-view,
 certificate/certificate-view}.tsx`, `backend/README.md`.
 
+## Step 9 — Backend to the API contract + integration (M3) ✅
+Branch `integrate/m3` (from `main`, with `frontend` merged in). Not merged to `main` — PR for review.
+- SafeSend + Unflagged (PR #2) and the backend engines (PR #3, Sharanya) were already on `main`.
+- Removed the committed `backend/node_modules` (2,828 files, 67.6 MB, Linux-only esbuild binary); `node_modules/`
+  was already ignored at the root. `backend/data/` (certificate store) is ignored too.
+- Backend rebuilt to the API contract in `backend/README.md` (her stack kept: Express, TypeScript,
+  ethers): all six endpoints, `{ error }` responses, input validation, generic 500s (details only in server logs).
+  - Scan: registry flag, links to flagged counterparties (MSTScan `txlist` + `getFlag`), transfer bursts; degrades
+    with a stated reason if the registry/explorer is unreachable. Replaces the "ends in 99" placeholder.
+  - Certificates: body/salt/hash exactly per the hashing rules (both test vectors), `anchorCertificate` via the
+    relayer (legacy tx, NonceManager), stored in `DATA_DIR/certificates.json`. No relayer → stored unanchored.
+  - Custody: `logCustody(certHash, 1|2)`; unanchored → 409. Stats: counts from `Flagged` / `CertificateAnchored`
+    events (60 s cache); `transfersBlocked` is `null` (reverts leave no event) — frontend shows "—".
+  - `.env.example`, Dockerfile, `npm test` (node:test via tsx, no new dependencies): 25 tests.
+- ABIs: `npm run abi` now also writes `backend/src/abi/ProvenrelyRegistry.json`; `frontend/abi/safe-send.ts` is now
+  generated. CI: new Frontend and Backend jobs, plus a check that generated ABIs match `forge build`.
+- Frontend: `Stats` fields nullable; SafeSend error texts; **fix**: Share failed silently when the clipboard is
+  refused (in-app browsers, non-HTTPS) and custody was never logged — now logged, and the link is shown to copy.
+- End-to-end on a local Anvil chain (contracts deployed with `Deploy.s.sol`, compiled backend, frontend with mocks
+  off): scan of a flagged address → HIGH_RISK; Hindi explanation; certificate anchored (checked with `cast`);
+  Share → `CustodyLogged` on-chain; Verify → VALID with block time; edit a field → TAMPERED; dashboard counts real.
+
 ## Open items
-- SafeSend contract isn't in the repo yet (Shield uses a hand-written ABI for `send` + `RecipientFlagged`).
-- `src/Counter.sol` / `script/Counter.s.sol` Foundry template files are still on `main` (contract side, left alone).
+- Deploy to MST Testnet (owner), then set the addresses in the frontend and backend env and retest on MST.
+- Backend hosting not chosen yet; the store is a JSON file (one instance). Use a database before scaling out.
+- `transfersBlocked` needs an event or an indexer to be countable.
 - Contracts not deployed: registry/SafeSend addresses empty, so every chain write is untested against a real contract.
   Retest Shield (flagged + unflagged send), Issuer (flag, revoke, non-issuer wallet) and Verify (real anchor) after deploy.
 - Legacy sample-data code (`data/*`, `components/{cases,explorer,intake}/*`, `components/proof/{proof-card,hash-ring}.tsx`,
@@ -128,4 +151,5 @@ certificate/certificate-view}.tsx`, `backend/README.md`.
 
 ## Tests
 `cd frontend && npm test` (vitest): `lib/cert/canonical.test.ts`, `lib/chain/flags.test.ts` — 9 tests.
-Contracts: `forge test` (repo root) — 3 tests.
+`cd backend && npm test` (node:test): hashing vectors, scan rules, every endpoint over HTTP — 25 tests.
+Contracts: `forge test` (repo root) — 11 tests (3 registry + 8 SafeSend).
