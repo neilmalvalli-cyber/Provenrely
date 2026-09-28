@@ -8,7 +8,7 @@ import { rateLimit, type Limit } from "./lib/rate-limit.js";
 import { createCertificate, getCertificate, logCustody } from "./services/certificates.js";
 import { explainScan, parseExplainRequest } from "./services/explain.js";
 import { scanAddress } from "./services/scan.js";
-import { createStats } from "./services/stats.js";
+import { createStats, type StatsOptions } from "./services/stats.js";
 import type { CertificateStore } from "./store.js";
 import { ApiError } from "./types.js";
 
@@ -23,7 +23,7 @@ export interface AppDeps {
   relayerMinBalance?: bigint;
   trustProxy?: number;
   limits?: Partial<Record<"certificates" | "custody" | "scan" | "explain", Limit>>;
-  logs?: { startBlock: number; chunkSize: number; maxChunksPerRefresh: number; retries?: number; backoffMs?: number };
+  logs?: StatsOptions;
 }
 
 const DEFAULT_LIMITS = {
@@ -41,7 +41,7 @@ export function createApp(deps: AppDeps) {
   const app = express();
   const limits = { ...DEFAULT_LIMITS, ...deps.limits };
   const certDeps = { ...deps, relayerMinBalance: deps.relayerMinBalance ?? 10n ** 16n };
-  const stats = createStats(deps.chain, deps.logs ?? { startBlock: 0, chunkSize: 2000, maxChunksPerRefresh: 200 });
+  const stats = createStats(deps.chain, deps.explorer, deps.logs ?? { startBlock: 0, chunkSize: 2000, maxChunksPerRefresh: 200 });
 
   app.disable("x-powered-by");
   app.set("trust proxy", deps.trustProxy ?? 0);

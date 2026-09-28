@@ -19,7 +19,12 @@ const app = createApp({
   relayerMinBalance: config.relayerMinBalance,
   trustProxy: config.trustProxy,
   limits: config.limits,
-  logs: { startBlock: config.deployBlock, chunkSize: config.logChunkSize, maxChunksPerRefresh: config.maxChunksPerRefresh },
+  logs: {
+    startBlock: config.deployBlock,
+    chunkSize: config.logChunkSize,
+    maxChunksPerRefresh: config.maxChunksPerRefresh,
+    safeSendAddress: config.safeSendAddress,
+  },
 });
 
 app.listen(config.port, () => {

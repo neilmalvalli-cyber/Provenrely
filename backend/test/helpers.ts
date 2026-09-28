@@ -15,6 +15,8 @@ export function fakeChain(flagged: Record<string, number> = {}, opts: { canWrite
   let n = 0;
   const tx = () => `0x${(++n).toString(16).padStart(64, "0")}` as Hex;
   const state = { relayerBalance: opts.relayerBalance ?? 10n ** 18n };
+  /** Failed calls per block, for the RPC block-scan fallback. */
+  const failedCalls = new Map<number, number>();
   const chain: Chain = {
     configured: true,
     canWrite: opts.canWrite ?? true,
@@ -35,8 +37,10 @@ export function fakeChain(flagged: Record<string, number> = {}, opts: { canWrite
     countEvents: async (name, from, to) =>
       name === "Flagged" ? (from <= 1 && 1 <= to ? Object.keys(flagged).length : 0) : anchors.filter((a) => a.block >= from && a.block <= to).length,
     relayer: async () => (opts.canWrite === false ? null : { address: "0x00000000000000000000000000000000000000Aa", balance: state.relayerBalance }),
+    countFailedCalls: async (_to, _sel, from, to) => [...failedCalls].filter(([b]) => b >= from && b <= to).reduce((s, [, n]) => s + n, 0),
   };
-  return { chain, anchors, custody, state };
+  const mine = (n = 1) => (block += n);
+  return { chain, anchors, custody, state, failedCalls, mine };
 }
 
 export const fakeExplorer = (txs: ExplorerTx[] | null): Explorer => ({ recentTransactions: async () => txs });

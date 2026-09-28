@@ -90,8 +90,13 @@ Logs a share or export on-chain (`logCustody(certHash, action)`, 1 = share, 2 = 
 ```
 
 ### `GET /api/stats`
-Real counts only (from registry events) — never placeholder numbers. A count that can't be produced is `null`
-(the UI shows "—"). `transfersBlocked` is always `null` for now: a reverted `SafeSend.send` leaves no event to count.
+Real counts only — never placeholder numbers. A count that can't be produced (yet) is `null`.
+- `flagsIssued`, `certificatesAnchored`: `Flagged` / `CertificateAnchored` logs, scanned from `DEPLOY_BLOCK` in
+  `LOG_CHUNK_SIZE` ranges with retries, cached and updated incrementally (`null` while catching up).
+- `transfersBlocked`: failed `SafeSend.send` transactions (a revert leaves no event), from MSTScan's transaction list
+  for `SAFESEND_ADDRESS` — or, with no explorer, by reading blocks and receipts over RPC. `null` when
+  `SAFESEND_ADDRESS` is unset or the count isn't available; the dashboard then hides the tile. It counts every failed
+  `send` call; in practice those are `RecipientFlagged` reverts.
 ```json
 { "flagsIssued": 12, "certificatesAnchored": 48, "transfersBlocked": null, "updatedAt": "2026-09-28T10:30:00Z" }
 ```

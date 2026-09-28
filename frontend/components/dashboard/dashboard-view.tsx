@@ -78,6 +78,8 @@ export function DashboardView() {
     },
   });
 
+  // Blocked transfers can only be counted from an explorer or a block scan; hide the tile when unavailable.
+  const showBlocked = stats.isLoading || stats.data?.transfersBlocked != null;
   const stat = (n: number | null | undefined) => (stats.isLoading ? "…" : n == null ? "—" : formatNumber(n));
   const health = flags.data ? flagStates(flags.data.all, flags.data.revokes) : null;
   const chainValue = (n: number | undefined) => (!REGISTRY_READY ? "—" : flags.isLoading ? "…" : n === undefined ? "—" : formatNumber(n));
@@ -130,13 +132,15 @@ export function DashboardView() {
           <ProgressBar value={anchors.data?.length ? (weekAnchors ?? 0) / anchors.data.length : null} />
         </div>
 
-        <div className="mt-6 grid grid-cols-3 gap-2 sm:gap-3">
+        <div className={`mt-6 grid gap-2 sm:gap-3 ${showBlocked ? "grid-cols-3" : "grid-cols-2"}`}>
           <Tile className="bg-white/[0.07] p-3 sm:p-4">
             <StatTile label="Active flags" value={chainValue(health?.counts.active)} />
           </Tile>
-          <Tile className="bg-white/[0.07] p-3 sm:p-4">
-            <StatTile label="Transfers blocked" value={stat(stats.data?.transfersBlocked)} />
-          </Tile>
+          {showBlocked && (
+            <Tile className="bg-white/[0.07] p-3 sm:p-4">
+              <StatTile label="Transfers blocked" value={stat(stats.data?.transfersBlocked)} />
+            </Tile>
+          )}
           <Tile className="bg-white/[0.07] p-3 sm:p-4">
             <StatTile label="Active issuers" value={chainValue(health?.activeIssuers)} />
           </Tile>

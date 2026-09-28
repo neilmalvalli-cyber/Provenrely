@@ -24,6 +24,11 @@ export interface Chain {
   countEvents(eventName: RegistryEvent, fromBlock: number, toBlock: number): Promise<number>;
   /** The relayer wallet and its balance in wei; null without a relayer key. */
   relayer(): Promise<{ address: string; balance: bigint } | null>;
+  /**
+   * Failed transactions to `to` calling `selector` in [fromBlock, toBlock], by reading every block and its
+   * receipts over RPC. Expensive — the explorer is preferred; this is the fallback (e.g. a local chain).
+   */
+  countFailedCalls(to: string, selector: string, fromBlock: number, toBlock: number): Promise<number>;
 }
 
 const notConfigured = (what: string) => async (): Promise<never> => {
@@ -40,6 +45,7 @@ export const nullChain: Chain = {
   latestBlock: notConfigured("The chain"),
   countEvents: notConfigured("The flag registry"),
   relayer: async () => null,
+  countFailedCalls: notConfigured("The chain"),
 };
 
 export function createChain(config: Config): Chain {
@@ -90,6 +96,20 @@ export function createChain(config: Config): Chain {
     async relayer() {
       if (!wallet) return null;
       return { address: wallet.address, balance: await provider.getBalance(wallet.address) };
+    },
+    async countFailedCalls(to, selector, fromBlock, toBlock) {
+      const target = to.toLowerCase();
+      const sel = selector.toLowerCase();
+      let n = 0;
+      for (let b = fromBlock; b <= toBlock; b++) {
+        const block = await provider.getBlock(b, true);
+        for (const tx of block?.prefetchedTransactions ?? []) {
+          if (tx.to?.toLowerCase() !== target || !tx.data.toLowerCase().startsWith(sel)) continue;
+          const receipt = await provider.getTransactionReceipt(tx.hash);
+          if (receipt?.status === 0) n++;
+        }
+      }
+      return n;
     },
   };
 }
