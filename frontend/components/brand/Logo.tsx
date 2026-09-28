@@ -5,8 +5,8 @@ import { cn } from "@/lib/utils";
  * Brand assets, cut from the supplied logo artwork
  * (regenerate with `node scripts/extract-brand.mjs`).
  * `sm` covers anything up to ~80px tall; `lg` is for hero artwork.
- * `sm` uses mark-160-solid.webp: the same artwork with its glass facets made more opaque
- * (alpha' = 1 − (1 − alpha)^2.2), so the small logo holds up on white and light backgrounds.
+ * `sm` uses mark-160-solid.webp: the same artwork composited onto a deep indigo base (#14123c) inside its own
+ * silhouette (alpha > 0.15, holes filled) and fully opaque, so the small logo holds up on white and light backgrounds.
  */
 const MARK = {
   sm: { src: "/brand/mark-160-solid.webp", w: 113, h: 160 },
