@@ -16,7 +16,7 @@ import { mstTestnet } from "@/lib/chain/mst";
 import { env } from "@/lib/config/env";
 import { SPRING } from "@/lib/motion";
 import { cn } from "@/lib/utils";
-import { MarbleBackground } from "./marble-background";
+import "./marble-background.css";
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutGrid, keys: "G D" },
@@ -120,7 +120,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <CommandPaletteProvider>
       <div className="marble-console relative isolate min-h-dvh">
-        <MarbleBackground />
+        <div className="marble-background marble-background--still no-print" aria-hidden="true" />
 
         <aside className="no-print fixed inset-y-0 left-0 z-40 hidden w-60 flex-col border-r border-line bg-void/80 px-3 py-4 backdrop-blur-xl lg:flex">
           <Link href="/" className="mb-7 px-2">

@@ -7,6 +7,13 @@
   background: linear-gradient(125deg, #ece9e5, #f6f3ee 48%, #d7d9e2);
 }
 
+/* Static still of the marble scene; the gradient above shows until it loads or if it fails. */
+.marble-background--still {
+  background:
+    url("/environment/marble-still.webp") center / cover no-repeat,
+    linear-gradient(125deg, #ece9e5, #f6f3ee 48%, #d7d9e2);
+}
+
 .marble-background canvas {
   display: block;
   width: 100%;
