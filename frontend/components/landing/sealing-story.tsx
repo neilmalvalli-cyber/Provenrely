@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion, useMotionValueEvent, useScroll, useSpring } from "framer-motion";
-import { Check, FileText, Layers, Paperclip, Waypoints } from "lucide-react";
+import { Check, FileText, KeyRound, Languages, ScanSearch } from "lucide-react";
 import { useRef, useState } from "react";
 import { DecodeText } from "@/components/ui/decode-text";
 import { DUR, EASE } from "@/lib/motion";
@@ -9,10 +9,10 @@ import { cn, mockHash, shortHash } from "@/lib/utils";
 import { STAGES } from "./sealing-stages";
 
 const ITEMS = [
-  { icon: Waypoints, label: "Transaction traces", meta: "312 tx · 48 addresses" },
-  { icon: Layers, label: "Chain snapshot", meta: "block #6,892,104" },
-  { icon: FileText, label: "Investigator findings", meta: "3 indicators" },
-  { icon: Paperclip, label: "Attachments", meta: "2 files" },
+  { icon: ScanSearch, label: "Verdict & score", meta: "High risk · 90 / 100" },
+  { icon: FileText, label: "Reasons", meta: "3 indicators" },
+  { icon: Languages, label: "Explanation", meta: "English · हिन्दी" },
+  { icon: KeyRound, label: "Salt", meta: "32 random bytes" },
 ];
 
 const LEAVES = ITEMS.map((it, i) => mockHash(`leaf-${i}-${it.label}`));
@@ -82,7 +82,7 @@ function CommitStage() {
     transition: { duration: 0.6, delay, ease: EASE },
   });
   return (
-    <svg viewBox="0 0 450 300" className="w-full max-w-md" role="img" aria-label="Merkle tree">
+    <svg viewBox="0 0 450 300" className="w-full max-w-md" role="img" aria-label="Certificate fields combining into one fingerprint">
       {leaves.map((x, i) => (
         <motion.path key={`l${i}`} d={path(x, 250, pairs[i >> 1], 150)} fill="none" stroke="rgba(255,255,255,0.22)" strokeWidth="1.2" {...draw(0.1 + i * 0.05)} />
       ))}
@@ -128,7 +128,7 @@ function AnchorStage() {
         transition={{ duration: DUR.slow, ease: EASE }}
         className="mx-auto mb-6 w-fit rounded-lg border border-violet/40 bg-violet/10 px-3 py-2 font-mono text-[11.5px] text-violet-100"
       >
-        root {shortHash(ROOT, 6, 5)}
+        hash {shortHash(ROOT, 6, 5)}
       </motion.div>
       <motion.div
         className="mx-auto mb-2 h-8 w-px bg-gradient-to-b from-violet/70 to-transparent"
@@ -163,7 +163,7 @@ function AnchorStage() {
                 </motion.span>
               )}
               <span className="font-mono text-[9.5px] text-muted">#{String(b).slice(-3)}</span>
-              {hit && <span className="mt-1 text-[10px] text-violet-200">root</span>}
+              {hit && <span className="mt-1 text-[10px] text-violet-200">anchor</span>}
             </motion.div>
           );
         })}
@@ -174,7 +174,7 @@ function AnchorStage() {
         transition={{ delay: 0.9, duration: DUR.slow }}
         className="mt-6 text-center font-mono text-[11px] text-muted"
       >
-        anchored at block #6,892,118 · finalized
+        example · anchored on MST at block #6,892,118
       </motion.p>
     </div>
   );
@@ -203,8 +203,8 @@ export function SealingStory() {
         <div className="sticky top-0 flex h-screen items-center">
           <div className="mx-auto grid w-full max-w-7xl grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] items-center gap-16 px-8">
             <div>
-              <div className="mb-4 text-[13px] font-medium text-violet-300/90">How sealing works</div>
-              <h2 className="text-headline text-balance text-fg">From findings to a proof anyone can check.</h2>
+              <div className="mb-4 text-[13px] font-medium text-violet-300/90">How it works</div>
+              <h2 className="text-headline text-balance text-fg">From a scan to a certificate anyone can check.</h2>
               <ol className="relative mt-12 space-y-1 pl-6">
                 <span className="absolute bottom-2 left-0 top-2 w-px bg-line-strong" />
                 <motion.span className="absolute left-0 top-2 w-px origin-top bg-violet" style={{ scaleY: progress, bottom: 8 }} />
@@ -260,8 +260,8 @@ export function SealingStory() {
 
       {/* Mobile / tablet: stacked */}
       <div className="px-4 py-24 sm:px-6 lg:hidden">
-        <div className="mb-4 text-[13px] font-medium text-violet-300/90">How sealing works</div>
-        <h2 className="text-headline text-balance text-fg">From findings to a proof anyone can check.</h2>
+        <div className="mb-4 text-[13px] font-medium text-violet-300/90">How it works</div>
+        <h2 className="text-headline text-balance text-fg">From a scan to a certificate anyone can check.</h2>
         <div className="mt-12 space-y-14">
           {STAGES.map((s, i) => {
             const V = VISUALS[i];

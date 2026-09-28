@@ -9,9 +9,9 @@ import { getCase } from "@/data/cases";
 import { DUR, EASE } from "@/lib/motion";
 import { cn, formatNumber, shortHash, sleep } from "@/lib/utils";
 
-const STEPS = ["Locate anchor", "Recompute proof", "Compare roots"];
+const STEPS = ["Recompute SHA-256", "Read certificates(hash)", "Check the anchor"];
 
-/** Live, in-page verification: the landing page proves its own claim. */
+/** In-page verification demo with an example certificate hash (no chain call; the console does the real check on MST). */
 export function VerifyDemo() {
   const c = getCase("PR-8842")!;
   const genuine = c.evidence.proofHash;
@@ -50,10 +50,10 @@ export function VerifyDemo() {
     <div className="glass overflow-hidden rounded-3xl">
       <div className="border-b border-line p-5 sm:p-7">
         <label htmlFor="demo-hash" className="text-[12px] text-muted">
-          Evidence hash · case {c.id}
+          Certificate hash · example
         </label>
         <div className="mt-2 flex flex-col gap-2 sm:flex-row">
-          <div className="relative flex min-w-0 flex-1 items-center rounded-xl border border-line-strong bg-black/30 px-4">
+          <div className="relative flex min-w-0 flex-1 items-center rounded-full border border-line-strong bg-panel-2 px-4">
             <input
               id="demo-hash"
               value={hash}
@@ -111,8 +111,8 @@ export function VerifyDemo() {
             {result === null ? (
               <motion.p key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-[14px] leading-relaxed text-fg-2">
                 {running
-                  ? "Checking the hash against the root anchored on-chain…"
-                  : "Press Verify to check this hash against its on-chain anchor. Then change one character and try again."}
+                  ? "Looking up this exact hash in the registry…"
+                  : "Press Verify to check this hash against its anchor. Then change one character and try again."}
               </motion.p>
             ) : result ? (
               <motion.div key="ok" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: DUR.base, ease: EASE }}>
@@ -123,8 +123,8 @@ export function VerifyDemo() {
                     <span className="text-[15px] font-medium">Verified</span>
                   </div>
                   <p className="mt-2 text-[13px] text-fg-2">
-                    Included in root <code className="font-mono text-fg"><DecodeText text={shortHash(c.evidence.merkleRoot, 8, 6)} /></code>, anchored at block{" "}
-                    <span className="font-mono text-fg">#{formatNumber(c.evidence.blockHeight)}</span>.
+                    This exact hash <code className="font-mono text-fg"><DecodeText text={shortHash(hash, 8, 6)} /></code> was anchored on MST at block{" "}
+                    <span className="font-mono text-fg">#{formatNumber(c.evidence.blockHeight)}</span> (example).
                   </p>
                 </div>
               </motion.div>
@@ -133,10 +133,10 @@ export function VerifyDemo() {
                 <div className="rounded-2xl border border-red-400/20 bg-red-400/[0.05] p-5">
                   <div className="flex items-center gap-2.5 text-red-200">
                     <XCircle className="size-5" />
-                    <span className="text-[15px] font-medium">No matching anchor</span>
+                    <span className="text-[15px] font-medium">Tampered — never anchored</span>
                   </div>
                   <p className="mt-2 text-[13px] text-fg-2">
-                    One changed character produces a completely different fingerprint, so it no longer matches anything on-chain.
+                    One changed character produces a completely different hash, so the registry has no record of it: this copy isn't the certificate that was issued.
                   </p>
                 </div>
               </motion.div>

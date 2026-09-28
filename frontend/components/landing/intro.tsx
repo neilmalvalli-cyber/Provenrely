@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { PRODUCT_WORDMARK } from "@/lib/config/brand";
 import { INTRO_SEEN_KEY } from "@/lib/intro-boot";
 import "./intro.css";
 
@@ -15,7 +16,6 @@ const SETTLE_MS = 260; // overlay copy fades out over the (identical) real eleme
    (must match the crops in scripts/extract-brand.mjs). */
 const ART = 1254;
 const MARK_BOX = { x: 339, y: 120, w: 585, h: 830 };
-const WORD_BOX = { x: 164, y: 956, w: 917, h: 100 };
 const pct = (b: typeof MARK_BOX) => ({
   left: `${(b.x / ART) * 100}%`,
   top: `${(b.y / ART) * 100}%`,
@@ -49,7 +49,9 @@ const EDGES: [string, number][] = [
   ["M400 785L625 657L625 912Z", 1.44],
   ["M625 657L852 529L852 785L625 912Z", 1.5],
 ];
-const LETTERS = ["lS", "lO", "lL", "lI1", "lD", "lI2", "lT", "lY"];
+/* The wordmark is live text (the artwork still carries the previous product name), so it always matches the brand
+   constant and lands exactly on the nav wordmark, which uses the same font, weight and tracking. */
+const LETTERS = [...PRODUCT_WORDMARK];
 
 export function LogoIntro() {
   const [mounted, setMounted] = useState(true);
@@ -275,10 +277,13 @@ export function LogoIntro() {
           </div>
 
           <div ref={word} className="ix-wmw">
-            {LETTERS.map((l) => (
-              <div key={l} className={`ix-lg ix-lt ix-${l}`} />
-            ))}
-            <div ref={wordRef} className="pointer-events-none absolute" style={pct(WORD_BOX)} />
+            <div ref={wordRef} className="ix-word">
+              {LETTERS.map((l, i) => (
+                <span key={i} className="ix-lt" style={{ ["--dx" as string]: `${(i - (LETTERS.length - 1) / 2) * 34}px` }}>
+                  {l}
+                </span>
+              ))}
+            </div>
           </div>
 
           <div className="ix-st">
@@ -286,7 +291,7 @@ export function LogoIntro() {
               <path d="M6 1l4.3 2.5v5L6 11 1.7 8.5v-5z" />
               <path d="M4 6.1l1.4 1.4L8.2 4.7" />
             </svg>
-            <span>SIGNATURE VALID</span>
+            <span>CERTIFICATE ANCHORED</span>
           </div>
         </div>
       </div>

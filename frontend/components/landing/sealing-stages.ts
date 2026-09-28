@@ -1,38 +1,38 @@
-import { Layers } from "lucide-react";
+import { ScanSearch } from "lucide-react";
 import { AnchorGlyph, MerkleGlyph, SealGlyph } from "@/components/brand/glyphs";
 
-/** The four sealing steps (shared by the sealing story and the landing page). */
+/** The four steps from a scan to a checkable certificate (shared by the sealing story and the landing page). */
 export const STAGES = [
   {
     key: "collect",
-    icon: Layers,
-    title: "Collect",
-    body: "Traces, the chain snapshot, your findings and attachments become one evidence bundle.",
+    icon: ScanSearch,
+    title: "Scan",
+    body: "Paste an MST address. You get a verdict — safe, suspicious or high risk — with a score, the reasons, and a plain explanation in English or Hindi.",
   },
   {
     key: "hash",
     icon: SealGlyph,
-    title: "Hash",
-    body: "Every item is fingerprinted with SHA-256. Change a single byte and its hash changes completely.",
+    title: "Certify",
+    body: "The verdict and its reasons become a certificate. Its fields are serialised canonically with a random salt and fingerprinted with SHA-256.",
   },
   {
     key: "commit",
     icon: MerkleGlyph,
-    title: "Commit",
-    body: "The fingerprints are combined pairwise into a Merkle tree, down to a single root.",
+    title: "Anchor",
+    body: "Only that fingerprint is written to the registry on MST, with the block time. The certificate itself stays with you.",
   },
   {
     key: "anchor",
     icon: AnchorGlyph,
-    title: "Anchor",
-    body: "Only the root is published on-chain. The evidence stays private; its integrity becomes public.",
+    title: "Verify & protect",
+    body: "Anyone can recompute the hash and check it on MST. Issuers flag fraud addresses, and SafeSend blocks transfers to them on-chain.",
   },
 ] as const;
 
-/** The evidence items of the demo case (as the sealing story shows them). */
+/** The parts of an example certificate (as the sealing story shows them). */
 export const EVIDENCE_ITEMS = [
-  { label: "Transaction traces", meta: "312 tx · 48 addresses" },
-  { label: "Chain snapshot", meta: "block #6,892,104" },
-  { label: "Investigator findings", meta: "3 indicators" },
-  { label: "Attachments", meta: "2 files" },
+  { label: "Verdict & score", meta: "High risk · 90 / 100" },
+  { label: "Reasons", meta: "3 indicators" },
+  { label: "Explanation", meta: "English · हिन्दी" },
+  { label: "Salt", meta: "32 random bytes" },
 ] as const;

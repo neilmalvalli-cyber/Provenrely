@@ -37,7 +37,7 @@ html[data-intro="done"] .intro-content {
      .ix-solid carries it and fades by opacity (composited) at the hand-off. */
 }
 .ix-overlay.ix-handoff { pointer-events: none; }
-.ix-solid { background: #020309; }
+.ix-solid { background: #e9e7ea url("/environment/marble-still.webp") center / cover no-repeat; }
 /* Hold on the first (dark) frame until the app is idle and the artwork is decoded, so
    main-thread-painted effects (filters, clip-paths, SVG strokes) never compete with
    hydration and stutter. The boot script starts it anyway after 2.5s as a failsafe. */
@@ -60,17 +60,17 @@ html[data-intro="done"] .intro-content {
 .ix-lg { position: absolute; inset: 0; background-image: url("/brand/intro-logo.webp"); background-size: 100% 100%; background-repeat: no-repeat; }
 
 /* ---------- atmosphere ---------- */
-.ix-bgRad { background: radial-gradient(52% 58% at 50% 45%, #0b0d22 0%, #060816 42%, #020309 82%); animation: ix-fadeIn 0.6s ease-out 0s both; }
-.ix-vig { background: radial-gradient(85% 85% at 50% 50%, transparent 60%, rgba(0, 0, 0, 0.5) 100%); }
-.ix-amb { background: radial-gradient(34% 48% at 47% 50%, rgba(96, 52, 220, 0.2) 0%, transparent 72%), radial-gradient(30% 40% at 12% 30%, rgba(60, 40, 140, 0.1) 0%, transparent 70%); animation: ix-fadeIn 1.1s ease-out 0.2s both; }
+.ix-bgRad { background: radial-gradient(52% 58% at 50% 45%, rgba(255, 255, 255, 0.82) 0%, rgba(246, 245, 249, 0.66) 42%, rgba(236, 235, 241, 0.5) 82%); animation: ix-fadeIn 0.6s ease-out 0s both; }
+.ix-vig { background: radial-gradient(85% 85% at 50% 50%, transparent 60%, rgba(40, 38, 60, 0.14) 100%); }
+.ix-amb { background: radial-gradient(34% 48% at 47% 50%, rgba(96, 52, 220, 0.12) 0%, transparent 72%), radial-gradient(30% 40% at 12% 30%, rgba(60, 40, 140, 0.06) 0%, transparent 70%); animation: ix-fadeIn 1.1s ease-out 0.2s both; }
 
 /* faint network nodes + twinkling particles */
 .ix-net { position: absolute; left: 0; top: 0; width: 1440px; height: 900px; overflow: visible; }
 .ix-nodes { animation: ix-fade35 0.7s ease-out 0.05s both, ix-nodesDown 0.8s ease-out 3.4s forwards; }
-.ix-nd { fill: #b3bdff; }
+.ix-nd { fill: #6f63e8; }
 .ix-nh { fill: rgba(120, 100, 255, 0.14); }
 .ix-ptw { animation: ix-fadeIn 0.8s ease-out 0.08s both; }
-.ix-pt { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: #b6c2ff; box-shadow: 0 0 6px rgba(130, 150, 255, 0.8); }
+.ix-pt { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: #6f63e8; box-shadow: 0 0 6px rgba(111, 99, 232, 0.6); }
 .ix-v1 { animation: ix-tw 3.4s ease-in-out infinite, ix-dr1 11s ease-in-out infinite alternate; }
 .ix-v2 { animation: ix-tw 4.2s ease-in-out 0.8s infinite, ix-dr2 13s ease-in-out infinite alternate; }
 .ix-v3 { animation: ix-tw 3.8s ease-in-out 1.6s infinite, ix-dr3 9s ease-in-out infinite alternate; }
@@ -82,13 +82,13 @@ html[data-intro="done"] .intro-content {
 .ix-cr2 { animation: ix-ringIn 0.3s cubic-bezier(0.6, 0, 0.9, 0.5) 0.66s both; }
 .ix-at { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: #dfe6ff; box-shadow: 0 0 6px #8aa2ff; animation: ix-attract 0.6s cubic-bezier(0.55, 0, 0.8, 0.45) both; }
 .ix-energy { position: absolute; left: 0; top: 0; width: 1440px; height: 900px; overflow: visible; filter: drop-shadow(0 0 3px rgba(110, 140, 255, 0.9)); animation: ix-out 0.18s linear 0.86s forwards; }
-.ix-eb { fill: none; stroke: rgba(120, 140, 255, 0.3); stroke-width: 1; stroke-dasharray: 100; animation: ix-baseDraw 0.52s cubic-bezier(0.4, 0, 0.2, 1) both; }
-.ix-ec { fill: none; stroke: #d6e2ff; stroke-width: 1.6; stroke-linecap: round; stroke-dasharray: 12 200; animation: ix-comet 0.5s cubic-bezier(0.5, 0, 0.25, 1) both; }
-.ix-ec2 { stroke: #d9ccff; }
+.ix-eb { fill: none; stroke: rgba(90, 90, 220, 0.3); stroke-width: 1; stroke-dasharray: 100; animation: ix-baseDraw 0.52s cubic-bezier(0.4, 0, 0.2, 1) both; }
+.ix-ec { fill: none; stroke: #6b5cff; stroke-width: 1.6; stroke-linecap: round; stroke-dasharray: 12 200; animation: ix-comet 0.5s cubic-bezier(0.5, 0, 0.25, 1) both; }
+.ix-ec2 { stroke: #9a5cff; }
 .ix-efg { animation: ix-grpFlow 0.42s linear 0.48s both; }
 .ix-ef { fill: none; stroke: rgba(110, 120, 255, 0.16); stroke-width: 1; }
-.ix-ed { fill: none; stroke: #b9c6ff; stroke-width: 2; stroke-linecap: round; stroke-dasharray: 0.1 3.4; animation: ix-flow 0.42s linear infinite; }
-.ix-nf { fill: #e3e9ff; transform-box: fill-box; transform-origin: center; animation: ix-nflash 0.55s ease-out both; }
+.ix-ed { fill: none; stroke: #7a86ff; stroke-width: 2; stroke-linecap: round; stroke-dasharray: 0.1 3.4; animation: ix-flow 0.42s linear infinite; }
+.ix-nf { fill: #6b5cff; transform-box: fill-box; transform-origin: center; animation: ix-nflash 0.55s ease-out both; }
 
 /* ---------- scene 3–4: crystalline assembly + charge ---------- */
 .ix-lglow { position: absolute; left: 400px; top: 77px; width: 640px; height: 640px; border-radius: 50%; background: radial-gradient(circle, rgba(92, 70, 255, 0.24) 0%, rgba(70, 60, 220, 0.08) 40%, transparent 68%); animation: ix-glowIn 0.6s ease-out 1.72s both, ix-out 0.6s ease-in 3.6s forwards; }
@@ -112,28 +112,21 @@ html[data-intro="done"] .intro-content {
 
 /* ---------- scene 5: wordmark + status ---------- */
 .ix-wmw { position: absolute; inset: 0; will-change: transform; }
-.ix-lt { animation: ix-wm 0.64s cubic-bezier(0.16, 1, 0.3, 1) 2.1s both; }
-.ix-lS { clip-path: inset(77.19% 79.51% 16.11% 13.32%); --dx: -184px; }
-.ix-lO { clip-path: inset(77.19% 68.26% 16.11% 23.92%); --dx: -123px; }
-.ix-lL { clip-path: inset(77.19% 57.81% 16.11% 35.73%); --dx: -61px; }
-.ix-lI1 { clip-path: inset(77.19% 51.83% 16.11% 46.17%); --dx: -15px; }
-.ix-lD { clip-path: inset(77.19% 39.95% 16.11% 52.31%); --dx: 35px; }
-.ix-lI2 { clip-path: inset(77.19% 33.65% 16.11% 64.35%); --dx: 86px; }
-.ix-lT { clip-path: inset(77.19% 23.76% 16.11% 69.54%); --dx: 128px; }
-.ix-lY { clip-path: inset(77.19% 13.48% 16.11% 79.11%); --dx: 184px; }
+.ix-word { position: absolute; left: 0; right: 0; top: 478px; width: max-content; margin: 0 auto; font-family: var(--font-sans); font-size: 44px; font-weight: 600; line-height: 1; letter-spacing: 0.32em; color: #0b0b0c; white-space: nowrap; }
+.ix-lt { display: inline-block; animation: ix-wm 0.64s cubic-bezier(0.16, 1, 0.3, 1) 2.1s both; }
 .ix-fhaze { position: absolute; left: 40px; top: 478px; width: 540px; height: 150px; border-radius: 50%; background: radial-gradient(50% 50% at 50% 50%, rgba(96, 70, 255, 0.2) 0%, transparent 100%); animation: ix-fadeIn 0.6s ease-out 2.2s both, ix-out 0.4s ease-in 3.5s forwards; }
 .ix-fline { position: absolute; left: 90px; top: 545px; width: 440px; height: 1px; background: linear-gradient(90deg, transparent 0%, rgba(140, 130, 255, 0.75) 50%, transparent 100%); animation: ix-lineIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) 2.22s both, ix-out 0.35s ease-in 3.5s forwards; }
 .ix-fspark { position: absolute; left: 90px; top: 544px; width: 70px; height: 3px; border-radius: 2px; background: radial-gradient(50% 50% at 50% 50%, rgba(225, 215, 255, 0.95) 0%, transparent 100%); animation: ix-spark 0.7s cubic-bezier(0.45, 0, 0.3, 1) 2.34s both; }
-.ix-st { position: absolute; left: 0; top: 574px; width: 620px; display: flex; justify-content: center; align-items: center; gap: 8px; font-family: var(--font-mono), ui-monospace, monospace; font-size: 11px; letter-spacing: 0.28em; color: rgba(190, 184, 255, 0.78); animation: ix-status 0.95s ease-out 2.72s both; }
+.ix-st { position: absolute; left: 0; top: 574px; width: 620px; display: flex; justify-content: center; align-items: center; gap: 8px; font-family: var(--font-mono), ui-monospace, monospace; font-size: 11px; letter-spacing: 0.28em; color: rgba(58, 48, 150, 0.85); animation: ix-status 0.95s ease-out 2.72s both; }
 .ix-ic { fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
 
 .ix-skip {
   position: fixed; right: 24px; bottom: 20px; z-index: 101; height: 40px; padding: 0 16px; display: flex; align-items: center; gap: 8px;
-  border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.1); background: rgba(255, 255, 255, 0.04); color: #c7c9dc;
+  border-radius: 999px; border: 1px solid rgba(11, 11, 12, 0.12); background: rgba(255, 255, 255, 0.7); color: #3d3f46;
   font-family: var(--font-mono), ui-monospace, monospace; font-size: 11px; letter-spacing: 0.12em; cursor: pointer;
   animation: ix-fadeIn 0.4s ease-out 0.4s both; transition: background 0.2s, color 0.2s, opacity 0.4s;
 }
-.ix-skip:hover { background: rgba(255, 255, 255, 0.08); color: #fff; }
+.ix-skip:hover { background: #fff; color: #0b0b0c; }
 .ix-handoff .ix-skip { opacity: 0; pointer-events: none; }
 
 @keyframes ix-fadeIn { from { opacity: 0 } to { opacity: 1 } }

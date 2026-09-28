@@ -1,73 +1,75 @@
-import { ArrowRight, Building2, Landmark, Scale } from "lucide-react";
+import { ArrowRight, Landmark, ShieldCheck, UserRound } from "lucide-react";
 import { preload } from "react-dom";
 import { Architecture } from "@/components/landing/architecture";
 import { ScrollHero } from "@/components/landing/hero/scroll-hero";
 import { LogoIntro } from "@/components/landing/intro";
 import { ProductShowcase } from "@/components/landing/product-showcase";
-import { EVIDENCE_ITEMS, STAGES } from "@/components/landing/sealing-stages";
+import { STAGES } from "@/components/landing/sealing-stages";
 import { SealingStory } from "@/components/landing/sealing-story";
 import { Split } from "@/components/landing/split";
-import { Starfield } from "@/components/landing/starfield";
 import { VerifyDemo } from "@/components/landing/verify-demo";
-import { Backdrop } from "@/components/layout/backdrop";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteNav } from "@/components/navigation/site-nav";
 import { LinkButton } from "@/components/ui/button";
 import { FitWidth } from "@/components/ui/fit-width";
 import { SectionHeader } from "@/components/ui/panel";
 import { Reveal } from "@/components/ui/reveal";
-import { getCase } from "@/data/cases";
-import { formatNumber, mockHash } from "@/lib/utils";
+import { PRODUCT_NAME } from "@/lib/config/brand";
+import "@/components/console/console-theme.css";
+import "@/components/layout/marble-background.css";
 
 const AUDIENCES = [
   {
+    icon: UserRound,
+    title: "People about to pay",
+    body: "Check an address before sending money, and read why it looks risky in English or Hindi — with the 1930 helpline and cybercrime.gov.in one tap away.",
+  },
+  {
     icon: Landmark,
-    title: "Investigative units",
-    body: "Hand prosecutors a record of exactly what was examined and when — with integrity that holds up under challenge.",
+    title: "Police cyber cells & investigators",
+    body: "Issue a certificate for what you found. Anyone can check it against MST later, so the record holds up when it's challenged.",
   },
   {
-    icon: Building2,
-    title: "Exchanges & compliance",
-    body: "Document freeze decisions and sanctions exposure with evidence counterparties can verify independently.",
-  },
-  {
-    icon: Scale,
-    title: "Forensic & legal firms",
-    body: "Deliver reports clients can check themselves, instead of asking them to take your word for it.",
+    icon: ShieldCheck,
+    title: "Exchanges & wallets",
+    body: "Flag addresses tied to fraud in a shared registry, and let SafeSend stop transfers to them on-chain before the money moves.",
   },
 ];
 
-/** The mark's shape beside each sealing step (see components/landing/companion/scenes.ts). */
+/** The mark's shape beside each step (see components/landing/companion/scenes.ts). */
 const HOW_MORPH = ["collect", "hash", "merkle", "chain"] as const;
 
-/** What each sealing step produces for the demo case — shown beside the step on desktop. */
-const CASE = getCase("PR-8842")!;
-const short = (h: string, a = 8, b = 6) => `${h.slice(0, a)}…${h.slice(-b)}`;
+/** What each step produces, for an example certificate — shown beside the step on desktop. */
 const HOW_DETAIL = [
   null,
   <Detail
-    key="hash"
-    title="Fingerprints · SHA-256"
-    rows={EVIDENCE_ITEMS.map((it, i) => [it.label, short(mockHash(`leaf-${i}-${it.label}`))])}
-  />,
-  <Detail
-    key="commit"
-    title="Merkle tree"
+    key="certify"
+    title="Certificate · example"
     rows={[
-      ["Leaves", `${EVIDENCE_ITEMS.length} fingerprints`],
-      ["Pair 1", short(mockHash("pair-0"))],
-      ["Pair 2", short(mockHash("pair-1"))],
-      ["Root", short(CASE.evidence.merkleRoot)],
+      ["Verdict", "High risk"],
+      ["Score", "90 / 100"],
+      ["Reasons", "3 indicators"],
+      ["Hash", "0x89e1…7c4a"],
     ]}
   />,
   <Detail
     key="anchor"
-    title={`Anchor · ${CASE.id}`}
+    title="Anchor on MST · example"
     rows={[
-      ["Block", `#${formatNumber(CASE.evidence.blockHeight)}`],
-      ["Registry contract", short(CASE.evidence.contract, 6, 4)],
-      ["Relayer", CASE.evidence.relayer],
-      ["Status", "finalized"],
+      ["Written", "certificate hash only"],
+      ["Contract", "ProvenrelyRegistry"],
+      ["Block time", "UTC, from MST"],
+      ["Status", "anchored"],
+    ]}
+  />,
+  <Detail
+    key="verify"
+    title="Check & block · example"
+    rows={[
+      ["Verify", "certificates(hash) ≠ 0"],
+      ["Edited copy", "hash never anchored"],
+      ["Flag", "Investment scam"],
+      ["SafeSend", "transfer reverted"],
     ]}
   />,
 ];
@@ -82,7 +84,7 @@ function Detail({ title, rows }: { title: string; rows: (readonly [string, strin
             <div key={k} className="flex items-center justify-between gap-4 py-2.5">
               <dt className="text-[13px] text-fg-2">{k}</dt>
               <dd className="flex items-center gap-2 font-mono text-[12.5px] text-fg">
-                {v === "finalized" && <span className="size-1.5 rounded-full bg-ok" />}
+                {v === "anchored" && <span className="size-1.5 rounded-full bg-ok" />}
                 {v}
               </dd>
             </div>
@@ -121,15 +123,16 @@ export default function LandingPage() {
   preload("/brand/intro-logo.webp", { as: "image", fetchPriority: "high" });
   preload("/brand/mark-640.webp", { as: "image" });
   return (
-    <div className="relative isolate bg-void">
+    <div className="console-theme landing-light relative isolate">
+      {/* The same still marble as the console. */}
+      <div className="marble-background marble-background--still" aria-hidden="true" />
       <LogoIntro />
-      <Starfield />
       <SiteNav />
       <div className="relative z-10">
         {/* HERO — its mark becomes the page's companion (components/landing/hero) */}
         <ScrollHero />
 
-        {/* PRODUCT — the mark becomes the workspace: layers of evidence */}
+        {/* PRODUCT — the mark becomes the workspace */}
         <Split
           id="product"
           morph="stack"
@@ -138,8 +141,8 @@ export default function LandingPage() {
             <Reveal>
               <SectionHeader
                 eyebrow="The console"
-                title="One workspace, from first trace to final proof."
-                description="Everything an investigator does is captured as they do it — so the record you seal is the record you reviewed."
+                title="Scan, explain, certify — in one place."
+                description="Check an address, understand the verdict in plain language, and turn it into a certificate anchored on MST. Verify, Shield and Issuer sit right beside it."
               />
             </Reveal>
           }
@@ -158,8 +161,8 @@ export default function LandingPage() {
             <Reveal>
               <SectionHeader
                 eyebrow="Try it"
-                title="Don't take our word for it."
-                description="This is a real verification flow running in your browser. Check the hash, then change a single character and check it again."
+                title="Change one character. Watch it fail."
+                description="A certificate is only valid if its exact hash was anchored on MST. This demo runs in your browser with an example certificate: check it, edit a single character, and check it again."
               />
             </Reveal>
           }
@@ -172,34 +175,34 @@ export default function LandingPage() {
           }
         />
 
-        {/* STATEMENT — screenshot + spreadsheet become one sealed record */}
+        {/* STATEMENT — a forwarded screenshot becomes one checkable record */}
         <Split
           morph="record"
           left={
             <Reveal>
-              <p className="text-title text-balance text-muted lg:text-right">Most on-chain evidence is a screenshot and a spreadsheet.</p>
+              <p className="text-title text-balance text-muted lg:text-right">Most scam warnings are a forwarded screenshot nobody can check.</p>
             </Reveal>
           }
           right={
             <Reveal delay={0.1}>
               <p className="text-title text-balance text-muted">
-                <span className="text-fg">Solidity turns it into a record whose integrity anyone can check</span> — without seeing the evidence
-                itself.
+                <span className="text-fg">{PRODUCT_NAME} turns a risk check into a certificate anyone can verify</span> — and a flag that can stop the
+                transfer before it happens.
               </p>
             </Reveal>
           }
         />
 
-        {/* HOW — each step beside the shape it describes (on small screens: the original story) */}
+        {/* HOW — each step beside the shape it describes (on small screens: the story version) */}
         <section id="how" className="relative scroll-mt-16 border-t border-line">
           <div className="hidden lg:block">
             {STAGES.map((st, i) => {
               const step = <Stage index={i} title={st.title} body={st.body} icon={st.icon} />;
               const detail = HOW_DETAIL[i];
-              // every row has something on both sides: the step, and what it produces for the demo case
+              // every row has something on both sides: the step, and what it produces for an example certificate
               const header = (
                 <Reveal>
-                  <SectionHeader eyebrow="How sealing works" title="From findings to a proof anyone can check." />
+                  <SectionHeader eyebrow="How it works" title="From a scan to a certificate anyone can check." />
                 </Reveal>
               );
               const [left, right] = i === 0 ? [header, step] : i % 2 === 1 ? [step, detail] : [detail, step];
@@ -217,7 +220,7 @@ export default function LandingPage() {
           left={
             <div className="space-y-12">
               <Reveal>
-                <SectionHeader eyebrow="Who it's for" title="For teams whose findings will be challenged." />
+                <SectionHeader eyebrow="Who it's for" title="For anyone about to trust an address." />
               </Reveal>
               <Audience a={AUDIENCES[0]} />
             </div>
@@ -230,7 +233,7 @@ export default function LandingPage() {
           }
         />
 
-        {/* ARCHITECTURE — the bundle stays private, only its fingerprint leaves */}
+        {/* ARCHITECTURE — the certificate stays private, only its fingerprint leaves */}
         <Split
           id="security"
           morph="arch"
@@ -238,8 +241,8 @@ export default function LandingPage() {
             <Reveal>
               <SectionHeader
                 eyebrow="Architecture"
-                title="Private evidence. Public integrity."
-                description="Case data never leaves your organization. The only thing published is a fingerprint that proves it hasn't changed."
+                title="Private certificate. Public fingerprint."
+                description="The certificate stays with whoever holds it. The only thing written on MST is its hash — enough to prove it hasn't changed, and nothing about who asked."
               />
             </Reveal>
           }
@@ -254,14 +257,13 @@ export default function LandingPage() {
 
         {/* CTA — the S again (overflow-clip, not hidden: a scroll container would swallow its stop) */}
         <div className="relative overflow-clip">
-          <Backdrop variant="hero" />
           <Split
             morph="mark"
             left={
               <Reveal>
-                <h2 className="text-headline text-sheen text-balance">Start the next case with the proof built in.</h2>
+                <h2 className="text-headline text-balance text-fg">Check the address before the money moves.</h2>
                 <p className="text-lede mt-5 max-w-xl text-fg-2">
-                  Explore the console with demo cases. Nothing here touches a real chain or real data.
+                  Open the console to scan an address, issue a certificate, or verify one you were sent. Certificates and flags live on MST Testnet.
                 </p>
               </Reveal>
             }
@@ -271,8 +273,8 @@ export default function LandingPage() {
                   Open the console
                   <ArrowRight />
                 </LinkButton>
-                <LinkButton href="/intake" variant="secondary" size="lg">
-                  Run a demo intake
+                <LinkButton href="/scan" variant="secondary" size="lg">
+                  Scan an address
                 </LinkButton>
               </Reveal>
             }

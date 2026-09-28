@@ -1,6 +1,7 @@
-import { Database, Laptop, Radio, UserRound, UsersRound } from "lucide-react";
+import { FileCheck2, Laptop, ShieldAlert, UserRound, UsersRound } from "lucide-react";
 import type { ReactNode } from "react";
-import { AnchorGlyph, MerkleGlyph } from "@/components/brand/glyphs";
+import { AnchorGlyph, SealGlyph } from "@/components/brand/glyphs";
+import { PRODUCT_NAME } from "@/lib/config/brand";
 import { cn } from "@/lib/utils";
 
 function Node({ icon, title, meta, tone = "default" }: { icon: ReactNode; title: string; meta: string; tone?: "default" | "public" }) {
@@ -41,15 +42,15 @@ export function Architecture() {
     <div className="glass rounded-3xl p-5 sm:p-8">
       <div className="grid gap-8 lg:grid-cols-[1fr_auto]">
         <div>
-          <div className="mb-3 text-[12px] text-muted">Private — stays with your organization</div>
+          <div className="mb-3 text-[12px] text-muted">Private — stays with whoever holds the certificate</div>
           <div className="flex flex-col lg:flex-row lg:items-stretch">
-            <Node icon={<UserRound className="size-4" />} title="Investigator" meta="Reviews and approves" />
+            <Node icon={<UserRound className="size-4" />} title="You" meta="Scan an address" />
             <div className="lg:hidden"><Arrow vertical /></div>
             <div className="hidden lg:flex"><Arrow /></div>
-            <Node icon={<Laptop className="size-4" />} title="Solidity console" meta="Trace, flag, seal" />
+            <Node icon={<Laptop className="size-4" />} title={`${PRODUCT_NAME} console`} meta="Verdict, reasons, explanation" />
             <div className="lg:hidden"><Arrow vertical /></div>
             <div className="hidden lg:flex"><Arrow /></div>
-            <Node icon={<Database className="size-4" />} title="Evidence bundle" meta="Encrypted storage" />
+            <Node icon={<FileCheck2 className="size-4" />} title="Certificate" meta="Fields + salt, exported as JSON" />
           </div>
 
           <div className="my-2 flex justify-center lg:justify-end lg:pr-[calc((100%-64px)/6)]">
@@ -57,22 +58,22 @@ export function Architecture() {
           </div>
 
           <div className="flex flex-col lg:flex-row-reverse lg:items-stretch">
-            <Node tone="public" icon={<MerkleGlyph className="size-4" />} title="Merkle root" meta="32 bytes, no case data" />
+            <Node tone="public" icon={<SealGlyph className="size-4" />} title="Certificate hash" meta="32 bytes, nothing personal" />
             <div className="lg:hidden"><Arrow vertical /></div>
             <div className="hidden lg:flex"><Arrow /></div>
-            <Node tone="public" icon={<Radio className="size-4" />} title="Relayer" meta="Submits the anchor" />
+            <Node tone="public" icon={<AnchorGlyph className="size-4" />} title="Registry on MST" meta="Anchors hashes, holds flags" />
             <div className="lg:hidden"><Arrow vertical /></div>
             <div className="hidden lg:flex"><Arrow /></div>
-            <Node tone="public" icon={<AnchorGlyph className="size-4" />} title="Registry contract" meta="Ethereum" />
+            <Node tone="public" icon={<ShieldAlert className="size-4" />} title="SafeSend" meta="Reverts transfers to flagged addresses" />
           </div>
-          <div className="mt-3 text-[12px] text-muted lg:text-right">Public — only a fingerprint leaves</div>
+          <div className="mt-3 text-[12px] text-muted lg:text-right">Public — only the fingerprint and fraud flags</div>
         </div>
 
         <div className="self-center border-t border-line pt-6 lg:w-60 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-0">
-          <Node icon={<UsersRound className="size-4" />} title="Anyone verifying" meta="Court, counterparty, auditor" />
+          <Node icon={<UsersRound className="size-4" />} title="Anyone verifying" meta="Victim, bank, police, court" />
           <p className="mt-4 text-[12.5px] leading-relaxed text-fg-2">
-            With the evidence bundle in hand, a verifier recomputes the root and compares it with the registry — no Solidity account and no trust in
-            our servers required.
+            With the certificate file in hand, a verifier recomputes its hash and reads certificates(hash) on MST — no {PRODUCT_NAME} account and no
+            trust in our servers required.
           </p>
         </div>
       </div>
