@@ -290,7 +290,7 @@ export function CertificateView({ id }: { id: string }) {
 }
 
 function AnchorBadge({ anchor, txHash }: { anchor: Anchor; txHash: `0x${string}` | null }) {
-  const base = "inline-flex h-7 items-center gap-1.5 rounded-full border px-3 text-[12.5px]";
+  const base = "inline-flex min-h-7 items-center gap-1.5 rounded-[14px] border px-3 py-1 text-[12.5px] leading-snug";
   if (anchor.state === "anchored")
     return (
       <a

@@ -233,7 +233,7 @@ export function IssuerView() {
             {writeBlocker && (
               <p className="flex items-start gap-2.5 rounded-[var(--radius-tile)] bg-panel-2 px-4 py-3 text-[13.5px] text-fg-2">
                 <Badge tone="warn" className="shrink-0">Read-only</Badge>
-                <span>{writeBlocker}</span>
+                <span className="min-w-0 [overflow-wrap:anywhere]">{writeBlocker}</span>
               </p>
             )}
             {issuer.isLoading && connected && REGISTRY_READY && (
