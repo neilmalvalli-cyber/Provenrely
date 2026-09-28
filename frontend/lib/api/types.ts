@@ -66,9 +66,11 @@ export interface CustodyReceipt {
 }
 
 export interface Stats {
-  flagsIssued: number;
-  certificatesAnchored: number;
-  transfersBlocked: number;
+  /** null = not available (e.g. registry not configured); the UI shows "—". */
+  flagsIssued: number | null;
+  certificatesAnchored: number | null;
+  /** Reverted SafeSend transfers leave no event, so the backend can't count these yet (null). */
+  transfersBlocked: number | null;
   updatedAt: string;
 }
 

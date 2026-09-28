@@ -27,6 +27,8 @@ const REVERT_TEXT: Record<string, string> = {
   BadAction: "Unknown custody action.",
   AccessControlUnauthorizedAccount: "This wallet doesn't have the role needed for this action.",
   RecipientFlagged: "The recipient is flagged — SafeSend blocked the transfer.",
+  ZeroRecipient: "The zero address can't receive transfers.",
+  TransferFailed: "The recipient refused the transfer.",
 };
 
 /** Short, readable message for a failed wallet or chain call. */

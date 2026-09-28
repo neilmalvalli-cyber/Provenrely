@@ -78,7 +78,7 @@ export function DashboardView() {
     },
   });
 
-  const stat = (n: number | undefined) => (stats.isLoading ? "…" : n === undefined ? "—" : formatNumber(n));
+  const stat = (n: number | null | undefined) => (stats.isLoading ? "…" : n == null ? "—" : formatNumber(n));
   const health = flags.data ? flagStates(flags.data.all, flags.data.revokes) : null;
   const chainValue = (n: number | undefined) => (!REGISTRY_READY ? "—" : flags.isLoading ? "…" : n === undefined ? "—" : formatNumber(n));
 

@@ -102,10 +102,20 @@ export function CertificateView({ id }: { id: string }) {
   async function custodyAction(action: CustodyAction, c: Certificate) {
     setBusy(action);
     try {
+      let copied = true;
       if (action === "share") {
-        const shareData = { title: `Certificate ${c.id}`, url: verifyUrl };
-        if (navigator.share) await navigator.share(shareData).catch(() => undefined);
-        else await navigator.clipboard?.writeText(verifyUrl);
+        // Share sheet → clipboard → show the link. Only a cancelled share sheet stops here; a refused
+        // clipboard (in-app browsers, non-HTTPS) must not block logging the share.
+        let shared = false;
+        if (navigator.share) {
+          const outcome = await navigator.share({ title: `Certificate ${c.id}`, url: verifyUrl }).then(
+            () => "shared" as const,
+            (e: unknown) => (e instanceof DOMException && e.name === "AbortError" ? ("cancelled" as const) : ("failed" as const)),
+          );
+          if (outcome === "cancelled") return;
+          shared = outcome === "shared";
+        }
+        if (!shared) copied = (await navigator.clipboard?.writeText(verifyUrl).then(() => true, () => false)) ?? false;
       } else {
         const blob = new Blob([JSON.stringify(c, null, 2)], { type: "application/json" });
         const a = document.createElement("a");
@@ -115,7 +125,10 @@ export function CertificateView({ id }: { id: string }) {
         URL.revokeObjectURL(a.href);
       }
       const receipt = await api.logCustody(c.id, action);
-      toast({ title: action === "share" ? "Shared — custody logged" : "Exported — custody logged", description: `tx ${shortHash(receipt.txHash, 10, 6)}` });
+      toast({
+        title: action === "share" ? "Shared — custody logged" : "Exported — custody logged",
+        description: copied ? `tx ${shortHash(receipt.txHash, 10, 6)}` : `Copy this link to share it: ${verifyUrl}`,
+      });
       void loadChain();
     } catch (e) {
       toast({ title: "Custody wasn't logged", description: errorMessage(e), tone: "info" });
