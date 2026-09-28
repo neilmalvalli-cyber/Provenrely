@@ -72,7 +72,7 @@ export function createChain(config: Config): Chain {
     let receipt;
     try {
       const tx = await call();
-      receipt = await tx.wait();
+      receipt = await tx.wait(1, 60_000); // below the frontend's 90 s timeout
     } catch (e) {
       console.error(`[chain] ${label} failed:`, e);
       signer?.reset(); // resync the nonce after a failed send

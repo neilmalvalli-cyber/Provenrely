@@ -14,11 +14,13 @@ export class ApiError extends Error {
 }
 
 const TIMEOUT_MS = 15_000;
+/** Issuing a certificate and logging custody wait for an MST transaction to be mined. */
+const CHAIN_WRITE_TIMEOUT_MS = 90_000;
 
-async function request<T>(path: string, init?: { method?: "GET" | "POST"; body?: unknown }): Promise<T> {
+async function request<T>(path: string, init?: { method?: "GET" | "POST"; body?: unknown; timeoutMs?: number }): Promise<T> {
   if (!env.apiUrl) throw new ApiError("The API URL is not configured (NEXT_PUBLIC_API_URL).");
   const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+  const timer = setTimeout(() => ctrl.abort(), init?.timeoutMs ?? TIMEOUT_MS);
   try {
     const res = await fetch(`${env.apiUrl}${path}`, {
       method: init?.method ?? "GET",
@@ -45,11 +47,11 @@ export const api = {
   scan: (address: string): Promise<ScanResult> => (env.useMocks ? mocks.scan(address) : request("/api/scan", { method: "POST", body: { address } })),
   explain: (req: ExplainRequest): Promise<Explanation> => (env.useMocks ? mocks.explain(req) : request("/api/explain", { method: "POST", body: req })),
   createCertificate: (input: { address: string; language: Language }): Promise<Certificate> =>
-    env.useMocks ? mocks.createCertificate(input) : request("/api/certificates", { method: "POST", body: input }),
+    env.useMocks ? mocks.createCertificate(input) : request("/api/certificates", { method: "POST", body: input, timeoutMs: CHAIN_WRITE_TIMEOUT_MS }),
   getCertificate: (id: string): Promise<Certificate> =>
     env.useMocks ? mocks.getCertificate(id) : request(`/api/certificates/${encodeURIComponent(id)}`),
   logCustody: (id: string, action: CustodyAction): Promise<CustodyReceipt> =>
-    env.useMocks ? mocks.logCustody(id, action) : request(`/api/certificates/${encodeURIComponent(id)}/custody`, { method: "POST", body: { action } }),
+    env.useMocks ? mocks.logCustody(id, action) : request(`/api/certificates/${encodeURIComponent(id)}/custody`, { method: "POST", body: { action }, timeoutMs: CHAIN_WRITE_TIMEOUT_MS }),
   stats: (): Promise<Stats> => (env.useMocks ? mocks.stats() : request("/api/stats")),
 };
 
