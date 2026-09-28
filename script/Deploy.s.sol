@@ -3,6 +3,7 @@ pragma solidity ^0.8.20;
 
 import {Script, console} from "forge-std/Script.sol";
 import {ProvenrelyRegistry} from "../src/ProvenrelyRegistry.sol";
+import {SafeSend} from "../src/SafeSend.sol";
 
 contract Deploy is Script {
     function run() external {
@@ -15,8 +16,10 @@ contract Deploy is Script {
         ProvenrelyRegistry reg = new ProvenrelyRegistry(deployer);
         reg.addIssuer(issuer);
         reg.grantRole(reg.RELAYER(), relayer);
+        SafeSend safeSend = new SafeSend(address(reg));
         vm.stopBroadcast();
 
         console.log("REGISTRY DEPLOYED AT:", address(reg));
+        console.log("SAFESEND DEPLOYED AT:", address(safeSend));
     }
 }

@@ -48,7 +48,8 @@ $ anvil
 ### Deploy
 
 ```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
+# DEPLOYER_PK, ISSUER_ADDR, RELAYER_ADDR come from the environment (e.g. a git-ignored .env) — never pass a key on the command line
+$ forge script script/Deploy.s.sol:Deploy --rpc-url https://testnetrpc.mstblockchain.com --chain-id 91562037 --broadcast
 ```
 
 ### Cast
