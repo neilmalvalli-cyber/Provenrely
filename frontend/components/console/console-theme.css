@@ -1,0 +1,203 @@
+/*
+ * Console theme: monochrome, light cards on frosted glass over the marble still.
+ *
+ * The landing page shares the base tokens and components (Button, GlassPanel, badges), so nothing global changes.
+ * Instead the console root (`.console-theme`) redefines the colour tokens for everything inside it, and dark cards
+ * (`.console-dark`) switch them back to a dark set. Existing components pick this up without code changes.
+ */
+
+.console-theme {
+  --console-ink: #0b0b0c;
+  --console-shell: rgba(255, 255, 255, 0.42);
+  --console-card: #ffffff;
+  --console-tile: #f4f4f5;
+  --radius-shell: 30px;
+  --radius-card: 24px;
+  --radius-tile: 16px;
+  --shadow-card: 0 1px 2px rgba(11, 11, 12, 0.04), 0 12px 32px -18px rgba(11, 11, 12, 0.22);
+
+  --color-void: #f4f4f5;
+  --color-base: #ffffff;
+  --color-deep: #f7f7f8;
+  --color-panel: #ffffff;
+  --color-panel-2: #f6f6f7;
+  --color-panel-3: #ededef;
+  --color-line: rgba(11, 11, 12, 0.08);
+  --color-line-strong: rgba(11, 11, 12, 0.14);
+  --color-fg: #0b0b0c;
+  --color-fg-2: #3d3f46; /* 10.9:1 on white */
+  --color-muted: #62656e; /* 5.9:1 on white, 5.3:1 on #f4f4f5 */
+
+  /* "Actionable" colour becomes ink: monochrome. */
+  --color-violet: #0b0b0c;
+  --color-violet-deep: #000000;
+  --color-violet-100: #0b0b0c;
+  --color-violet-200: #0b0b0c;
+  --color-violet-300: #2b2c31;
+  --color-violet-400: #2b2c31;
+  --color-purple: #3d3f46;
+  --color-blue: #3d3f46;
+  --color-cyan: #62656e;
+
+  /* Status colours: muted and dark enough to read on white. */
+  --color-ok: #1d7a4b;
+  --color-warn: #9a6212;
+  --color-danger: #b42318;
+  --color-emerald-200: #1d7a4b;
+  --color-emerald-300: #1d7a4b;
+  --color-emerald-400: #1d7a4b;
+  --color-amber-100: #8a560d;
+  --color-amber-200: #8a560d;
+  --color-amber-300: #9a6212;
+  --color-amber-400: #9a6212;
+  --color-red-200: #b42318;
+  --color-red-300: #b42318;
+  --color-red-400: #b42318;
+  --color-red-500: #b42318;
+
+  /* Translucent white overlays (hover, insets) become faint ink on light surfaces. */
+  --color-white: #0b0b0c;
+
+  color: var(--color-fg);
+  color-scheme: light;
+}
+
+/* Dark feature cards: the original dark set, so anything inside reads light-on-dark. */
+.console-theme .console-dark {
+  --color-panel: #0b0b0c;
+  --color-panel-2: #161618;
+  --color-panel-3: #1f1f22;
+  --color-line: rgba(255, 255, 255, 0.1);
+  --color-line-strong: rgba(255, 255, 255, 0.16);
+  --color-fg: #f5f5f6;
+  --color-fg-2: #c3c5cb;
+  --color-muted: #9a9ca5; /* 7.2:1 on #0b0b0c */
+  --color-violet: #ffffff;
+  --color-violet-100: #ffffff;
+  --color-violet-200: #ffffff;
+  --color-violet-300: #e6e6e8;
+  --color-violet-400: #e6e6e8;
+  --color-ok: #5fcf93;
+  --color-warn: #e7b35a;
+  --color-danger: #f08a80;
+  --color-emerald-200: #5fcf93;
+  --color-emerald-300: #5fcf93;
+  --color-amber-200: #e7b35a;
+  --color-amber-300: #e7b35a;
+  --color-red-200: #f08a80;
+  --color-red-300: #f08a80;
+  --color-white: #ffffff;
+  color: var(--color-fg);
+  color-scheme: dark;
+}
+
+/* Existing surfaces inside the console become white cards. */
+.console-theme .glass {
+  background: var(--console-card);
+  border: 1px solid rgba(11, 11, 12, 0.06);
+  backdrop-filter: none;
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+.console-theme .console-dark .glass {
+  background: #161618;
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+}
+
+/* Buttons (hooks from buttonVariants): pills. Primary = ink with white text; secondary = white with a thin border. */
+.console-theme .btn {
+  border-radius: 9999px;
+}
+.console-theme .btn-primary {
+  background: var(--console-ink);
+  color: #ffffff;
+  box-shadow: 0 6px 16px -8px rgba(11, 11, 12, 0.5);
+}
+.console-theme .btn-primary:hover {
+  filter: none;
+  background: #26272b;
+}
+.console-theme .btn-secondary {
+  background: #ffffff;
+  border-color: rgba(11, 11, 12, 0.12);
+  box-shadow: none;
+}
+.console-theme .btn-secondary:hover {
+  background: #f4f4f5;
+}
+.console-theme .console-dark .btn-primary {
+  background: #ffffff;
+  color: var(--console-ink);
+}
+.console-theme .console-dark .btn-secondary {
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Form fields: light wells with fully rounded corners. */
+.console-theme :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+  background-color: #f4f4f5;
+  border-radius: 14px;
+}
+.console-theme .console-dark :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea) {
+  background-color: #1a1a1d;
+}
+.console-theme :is(input, select, textarea):focus {
+  border-color: rgba(11, 11, 12, 0.45);
+  --tw-ring-color: rgba(11, 11, 12, 0.08);
+}
+
+.console-theme ::selection {
+  background: rgba(11, 11, 12, 0.14);
+}
+.console-theme :focus-visible {
+  outline-color: var(--console-ink);
+}
+
+/* The frosted shell floating over the marble. */
+.glass-shell {
+  background: var(--console-shell);
+  -webkit-backdrop-filter: blur(32px) saturate(140%);
+  backdrop-filter: blur(32px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  border-radius: var(--radius-shell);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.6) inset,
+    0 30px 80px -30px rgba(40, 38, 60, 0.35);
+}
+
+@media print {
+  .console-theme .glass-shell {
+    background: none;
+    border: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+}
+
+/* Certificates inside the console: ink accents instead of violet. */
+.console-theme .doc {
+  --doc-accent: #0b0b0c;
+}
+.console-theme .doc[data-doc-theme="dark"] {
+  --doc-bg: #0b0b0c;
+  --doc-accent: #ffffff;
+}
+
+/* Bento columns: cards stack with the same gap as the grid, and the last card grows so both columns end level. */
+.console-theme .bento-col {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+.console-theme .bento-col > :last-child {
+  flex: 1 1 auto;
+}
+
+/* The page's last block grows to the bottom of the shell, so content cards end level with the sidebar card. */
+.console-theme .console-main > :last-child,
+.console-theme .console-page > :last-child {
+  flex: 1 1 auto;
+}

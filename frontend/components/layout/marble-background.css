@@ -1,0 +1,23 @@
+/* Still marble photograph behind the console; the gradient shows until it loads or if it fails. */
+.marble-background {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  background: linear-gradient(125deg, #ece9e5, #f6f3ee 48%, #d7d9e2);
+}
+
+.marble-background--still {
+  background:
+    url("/environment/marble-still.webp") center / cover no-repeat,
+    linear-gradient(125deg, #ece9e5, #f6f3ee 48%, #d7d9e2);
+}
+
+/* Scrim: a light, neutral veil so the glass and its text stay readable over the brightest and darkest patches. */
+.marble-background::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(240, 239, 243, 0.18);
+}
