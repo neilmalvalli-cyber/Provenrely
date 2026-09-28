@@ -3,9 +3,10 @@ import { formatEther } from "ethers";
 import express, { type NextFunction, type Request, type Response } from "express";
 import type { Chain } from "./lib/chain.js";
 import type { Explorer } from "./lib/explorer.js";
+import type { LlmProvider } from "./lib/llm.js";
 import { rateLimit, type Limit } from "./lib/rate-limit.js";
 import { createCertificate, getCertificate, logCustody } from "./services/certificates.js";
-import { explain, parseExplainRequest } from "./services/explain.js";
+import { explainScan, parseExplainRequest } from "./services/explain.js";
 import { scanAddress } from "./services/scan.js";
 import { createStats } from "./services/stats.js";
 import type { CertificateStore } from "./store.js";
@@ -17,6 +18,8 @@ export interface AppDeps {
   store: CertificateStore;
   issuerName: string;
   corsOrigins: string[];
+  /** Optional LLM for explanations; null/undefined → templates. */
+  llm?: LlmProvider | null;
   relayerMinBalance?: bigint;
   trustProxy?: number;
   limits?: Partial<Record<"certificates" | "custody" | "scan" | "explain", Limit>>;
@@ -59,7 +62,7 @@ export function createApp(deps: AppDeps) {
   app.get("/health", health);
 
   app.post("/api/scan", rateLimit("scan", limits.scan), route(async (req, res) => res.json(await scanAddress(req.body?.address, deps))));
-  app.post("/api/explain", rateLimit("explain", limits.explain), route(async (req, res) => res.json(explain(parseExplainRequest(req.body)))));
+  app.post("/api/explain", rateLimit("explain", limits.explain), route(async (req, res) => res.json(await explainScan(parseExplainRequest(req.body), deps.llm ?? null))));
   app.post(
     "/api/certificates",
     rateLimit("certificate", limits.certificates),

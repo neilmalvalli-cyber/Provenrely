@@ -1,3 +1,4 @@
+import type { LlmProvider } from "../lib/llm.js";
 import { ApiError, LANGUAGES, VERDICTS, type ExplainRequest, type Explanation, type Language, type Verdict } from "../types.js";
 
 const SUMMARY: Record<Language, Record<Verdict, string>> = {
@@ -40,6 +41,35 @@ export function parseExplainRequest(b: unknown): ExplainRequest {
   if (!LANGUAGES.includes(language)) throw new ApiError(400, 'language must be "en" or "hi".');
   const reasons = Array.isArray(r.reasons) ? r.reasons.filter((x): x is string => typeof x === "string") : [];
   return { address: typeof r.address === "string" ? r.address : "", verdict: r.verdict as Verdict, score: r.score, reasons, language };
+}
+
+const HELPLINE = /1930/;
+const PORTAL = /cybercrime\.gov\.in/i;
+const DEVANAGARI = /[ऀ-ॿ]/;
+
+/**
+ * AI explanation when an LLM is configured, else (or on any failure) the template. The model only
+ * sees the scan facts. The response type has no `source` field, so the source is logged instead.
+ */
+export async function explainScan(req: ExplainRequest, llm: LlmProvider | null): Promise<Explanation> {
+  if (llm) {
+    try {
+      const out = await llm.explain(req, req.language);
+      if (out.explanation.length > 1500) throw new Error("explanation too long");
+      if (req.language === "hi" && !DEVANAGARI.test(out.explanation)) throw new Error("not in Hindi");
+      // The reporting steps are non-negotiable: add them from the template if the model left them out.
+      const steps = out.nextSteps.slice(0, 5);
+      const template = NEXT_STEPS[req.language];
+      if (!steps.some((s) => PORTAL.test(s))) steps.push(template[0]!);
+      if (!steps.some((s) => HELPLINE.test(s))) steps.push(template[1]!);
+      console.info(`[explain] source=ai provider=${llm.name} verdict=${req.verdict} lang=${req.language}`);
+      return { language: req.language, explanation: out.explanation, nextSteps: steps };
+    } catch (e) {
+      console.warn(`[explain] ${llm.name} failed, using template:`, e instanceof Error ? e.message : e);
+    }
+  }
+  console.info(`[explain] source=template verdict=${req.verdict} lang=${req.language}`);
+  return explain(req);
 }
 
 /** Plain-language explanation of a verdict, in English or Hindi, with the national reporting steps. */
