@@ -13,6 +13,10 @@ const app = createApp({
   store: await fileStore(config.dataDir),
   issuerName: config.issuerName,
   corsOrigins: config.corsOrigins,
+  relayerMinBalance: config.relayerMinBalance,
+  trustProxy: config.trustProxy,
+  limits: config.limits,
+  logs: { startBlock: config.deployBlock, chunkSize: config.logChunkSize, maxChunksPerRefresh: config.maxChunksPerRefresh },
 });
 
 app.listen(config.port, () => {

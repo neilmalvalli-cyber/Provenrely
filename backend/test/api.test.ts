@@ -32,9 +32,10 @@ before(async () => {
 });
 after(() => close());
 
-test("GET /health", async () => {
-  const r = await call("/health");
-  assert.deepEqual(r.json, { status: "ok", registry: true, anchoring: true });
+test("GET /api/health (and /health) report registry, anchoring and the relayer balance", async () => {
+  const r = await call("/api/health");
+  assert.deepEqual(r.json, { status: "ok", registry: true, anchoring: true, relayer: { address: "0x00000000000000000000000000000000000000Aa", balance: "1.0", low: false } });
+  assert.deepEqual((await call("/health")).json, r.json);
 });
 
 test("POST /api/scan returns the contract shape", async () => {
@@ -76,7 +77,7 @@ test("certificate: create → anchored hash matches body+salt → get → custod
   assert.equal(cert.body.language, "en");
   // the anchored hash is exactly what the browser will recompute
   assert.equal(cert.anchor!.certHash, certificateHash(cert.body, cert.salt));
-  assert.deepEqual(fake.anchors.at(-1), { certHash: cert.anchor!.certHash, subject: cert.body.address });
+  assert.deepEqual({ ...fake.anchors.at(-1), block: undefined }, { certHash: cert.anchor!.certHash, subject: cert.body.address, block: undefined });
 
   const fetched = await call(`/api/certificates/${cert.id}`);
   assert.deepEqual(fetched.json, cert);

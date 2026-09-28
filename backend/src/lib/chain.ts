@@ -10,6 +10,8 @@ export interface FlagInfo {
   expiry: bigint;
 }
 
+export type RegistryEvent = "Flagged" | "CertificateAnchored";
+
 /** Everything the API needs from MST. `configured` = registry reads work; `canWrite` = a relayer key is set. */
 export interface Chain {
   readonly configured: boolean;
@@ -17,35 +19,35 @@ export interface Chain {
   getFlag(address: string): Promise<FlagInfo>;
   anchor(certHash: Hex, subject: string): Promise<CertificateAnchor>;
   logCustody(certHash: Hex, action: 1 | 2): Promise<{ txHash: Hex; timestamp: string }>;
-  counts(): Promise<{ flagsIssued: number; certificatesAnchored: number }>;
+  latestBlock(): Promise<number>;
+  /** Number of `eventName` logs in [fromBlock, toBlock] — callers keep ranges small (MST limits log queries). */
+  countEvents(eventName: RegistryEvent, fromBlock: number, toBlock: number): Promise<number>;
+  /** The relayer wallet and its balance in wei; null without a relayer key. */
+  relayer(): Promise<{ address: string; balance: bigint } | null>;
 }
+
+const notConfigured = (what: string) => async (): Promise<never> => {
+  throw new ApiError(503, `${what} isn't configured on this server.`);
+};
 
 /** Used when REGISTRY_ADDRESS is unset: reads report "not configured", writes are refused. */
 export const nullChain: Chain = {
   configured: false,
   canWrite: false,
-  getFlag: async () => {
-    throw new ApiError(503, "The flag registry isn't configured on this server.");
-  },
-  anchor: async () => {
-    throw new ApiError(503, "Anchoring isn't configured on this server.");
-  },
-  logCustody: async () => {
-    throw new ApiError(503, "Custody logging isn't configured on this server.");
-  },
-  counts: async () => {
-    throw new ApiError(503, "The flag registry isn't configured on this server.");
-  },
+  getFlag: notConfigured("The flag registry"),
+  anchor: notConfigured("Anchoring"),
+  logCustody: notConfigured("Custody logging"),
+  latestBlock: notConfigured("The chain"),
+  countEvents: notConfigured("The flag registry"),
+  relayer: async () => null,
 };
-
-const CHUNK = 50_000;
-const MAX_LOOKBACK = 2_000_000;
 
 export function createChain(config: Config): Chain {
   if (!config.registryAddress) return nullChain;
   const provider = new JsonRpcProvider(config.rpcUrl, config.chainId, { staticNetwork: true });
   const reader = new Contract(config.registryAddress, registryAbi, provider);
-  const signer = config.relayerKey ? new NonceManager(new Wallet(config.relayerKey, provider)) : null;
+  const wallet = config.relayerKey ? new Wallet(config.relayerKey, provider) : null;
+  const signer = wallet ? new NonceManager(wallet) : null;
   const writer = signer ? (reader.connect(signer) as Contract) : null;
   const overrides = config.legacyTx ? { type: 0 } : {};
 
@@ -65,24 +67,6 @@ export function createChain(config: Config): Chain {
     return { receipt, timestamp: isoFromUnix(block?.timestamp ?? Math.floor(Date.now() / 1000)) };
   }
 
-  /** Count every log of one event: full range first, then chunked backwards if the RPC limits ranges. */
-  async function countEvents(eventName: string): Promise<number> {
-    const filter = reader.filters[eventName]!();
-    try {
-      return (await reader.queryFilter(filter, 0, "latest")).length;
-    } catch {
-      const latest = await provider.getBlockNumber();
-      const floor = Math.max(0, latest - MAX_LOOKBACK);
-      let n = 0;
-      for (let to = latest; to >= floor; to -= CHUNK) {
-        const from = Math.max(floor, to - CHUNK + 1);
-        n += (await reader.queryFilter(filter, from, to)).filter((l: Log | EventLog) => !l.removed).length;
-        if (from === floor) break;
-      }
-      return n;
-    }
-  }
-
   return {
     configured: true,
     canWrite: writer !== null,
@@ -98,9 +82,14 @@ export function createChain(config: Config): Chain {
       const { receipt, timestamp } = await send("Custody logging", () => writer!.getFunction("logCustody")(certHash, action, overrides));
       return { txHash: receipt.hash as Hex, timestamp };
     },
-    async counts() {
-      const [flagsIssued, certificatesAnchored] = await Promise.all([countEvents("Flagged"), countEvents("CertificateAnchored")]);
-      return { flagsIssued, certificatesAnchored };
+    latestBlock: () => provider.getBlockNumber(),
+    async countEvents(eventName, fromBlock, toBlock) {
+      const logs = await reader.queryFilter(reader.filters[eventName]!(), fromBlock, toBlock);
+      return logs.filter((l: Log | EventLog) => !l.removed).length;
+    },
+    async relayer() {
+      if (!wallet) return null;
+      return { address: wallet.address, balance: await provider.getBalance(wallet.address) };
     },
   };
 }

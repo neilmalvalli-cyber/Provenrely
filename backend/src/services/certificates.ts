@@ -11,6 +11,24 @@ export interface CertDeps {
   explorer: Explorer;
   store: CertificateStore;
   issuerName: string;
+  /** Refuse issuance below this relayer balance (wei) instead of failing mid-transaction. */
+  relayerMinBalance: bigint;
+}
+
+/** Throws 503 when the relayer can't pay for an anchor transaction. Checked before any scan or write. */
+async function assertRelayerFunded(deps: CertDeps) {
+  if (!deps.chain.canWrite) return;
+  let relayer;
+  try {
+    relayer = await deps.chain.relayer();
+  } catch (e) {
+    console.warn("[certificates] couldn't read the relayer balance:", e instanceof Error ? e.message : e);
+    throw new ApiError(503, "Certificate issuance is unavailable: MST can't be reached right now. Try again in a moment.");
+  }
+  if (relayer && relayer.balance < deps.relayerMinBalance) {
+    console.error(`[certificates] relayer ${relayer.address} is low on funds (${relayer.balance} wei)`);
+    throw new ApiError(503, "Certificate issuance is paused: the issuing wallet is low on tMSTC. Please try again later.");
+  }
 }
 
 const CUSTODY_CODE: Record<CustodyAction, 1 | 2> = { share: 1, export: 2 };
@@ -24,7 +42,9 @@ export async function createCertificate(input: unknown, deps: CertDeps): Promise
   const b = (input ?? {}) as Record<string, unknown>;
   const language = (b.language ?? "en") as Language;
   if (!LANGUAGES.includes(language)) throw new ApiError(400, 'language must be "en" or "hi".');
+  await assertRelayerFunded(deps);
 
+  // Always re-scan server-side: a verdict sent by the client is never trusted.
   const scan = await scanAddress(b.address, deps);
   const body: CertificateBody = {
     schemaVersion: 1,
