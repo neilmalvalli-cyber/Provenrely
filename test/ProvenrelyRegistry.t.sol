@@ -27,7 +27,7 @@ contract ProvenrelyRegistryTest is Test {
     function test_FlagAddress() public {
         // forge-lint: disable-next-line(unsafe-typecast)
         uint64 expiry = uint64(block.timestamp + 100);
-        
+
         vm.prank(issuer);
         registry.flag(user1, 1, bytes32("evidence"), expiry);
 
@@ -37,7 +37,7 @@ contract ProvenrelyRegistryTest is Test {
     function test_RevokeFlag() public {
         // forge-lint: disable-next-line(unsafe-typecast)
         uint64 expiry = uint64(block.timestamp + 100);
-        
+
         vm.prank(issuer);
         registry.flag(user1, 1, bytes32("evidence"), expiry);
 
