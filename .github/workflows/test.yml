@@ -92,3 +92,5 @@ jobs:
         run: npm test
       - name: Build
         run: npm run build
+      - name: Docker image builds
+        run: docker build -t provenrely-api .

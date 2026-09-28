@@ -1,0 +1,54 @@
+# Render Blueprint for the Provenrely API (backend/). New → Blueprint → pick this repo.
+# The frontend goes on Vercel (see DEPLOYMENT.md). Secrets are marked `sync: false`: Render asks for them
+# in the dashboard and they are never stored in this file.
+services:
+  - type: web
+    name: provenrely-api
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    # Persistent disks need a paid instance type; the certificate store lives on it.
+    plan: starter
+    healthCheckPath: /api/health
+    autoDeploy: true
+    buildFilter:
+      paths:
+        - backend/**
+    disk:
+      name: provenrely-data
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: DATA_DIR
+        value: /data
+      - key: TRUST_PROXY
+        value: "1"
+      - key: MST_RPC_URL
+        value: https://testnetrpc.mstblockchain.com
+      - key: MST_CHAIN_ID
+        value: "91562037"
+      - key: MST_LEGACY_TX
+        value: "true"
+      - key: MIN_GAS_PRICE_GWEI
+        value: "1"
+      - key: EXPLORER_API_URL
+        value: https://testnet.mstscan.com/api
+      - key: RELAYER_MIN_BALANCE
+        value: "0.01"
+      # Set these in the dashboard:
+      - key: CORS_ORIGIN          # your Vercel URL, e.g. https://provenrely.vercel.app
+        sync: false
+      - key: REGISTRY_ADDRESS
+        sync: false
+      - key: SAFESEND_ADDRESS
+        sync: false
+      - key: DEPLOY_BLOCK
+        sync: false
+      - key: RELAYER_PK           # secret
+        sync: false
+      - key: LLM_PROVIDER         # optional: anthropic | openai
+        sync: false
+      - key: LLM_API_KEY          # optional, secret
+        sync: false
+      - key: LLM_MODEL            # optional
+        sync: false
