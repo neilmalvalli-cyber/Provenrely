@@ -6,7 +6,8 @@ import { useCallback, useEffect, useState, type ChangeEvent } from "react";
 import { usePublicClient } from "wagmi";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Textarea } from "@/components/ui/input";
-import { DataField, GlassPanel, PageHeader, PanelHeader } from "@/components/ui/panel";
+import { Badge, Card } from "@/components/console/kit";
+import { DataField, PageHeader, PanelHeader } from "@/components/ui/panel";
 import { api, errorMessage } from "@/lib/api/client";
 import { CanonicalError, certificateHash, isValidSalt } from "@/lib/cert/canonical";
 import { explorer } from "@/lib/chain/explorer";
@@ -163,12 +164,12 @@ export function VerifyView() {
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
         <div className="space-y-4">
-          <GlassPanel>
+          <Card>
             <PanelHeader label="Step 1" title="Load a certificate" />
             <div className="space-y-4 p-5 sm:p-6">
               <div>
                 <Label htmlFor="cert-file">Upload the exported JSON</Label>
-                <label className="flex h-11 cursor-pointer items-center gap-2 rounded-lg border border-dashed border-line-strong px-3.5 text-[14px] text-fg-2 hover:bg-white/[0.03]">
+                <label className="flex h-11 cursor-pointer items-center gap-2 rounded-full border border-dashed border-line-strong px-3.5 text-[14px] text-fg-2 hover:bg-white/[0.03]">
                   <FileUp className="size-4" /> Choose a .json file
                   <input id="cert-file" type="file" accept="application/json,.json" onChange={onFile} className="sr-only" />
                 </label>
@@ -201,10 +202,10 @@ export function VerifyView() {
                 </p>
               )}
             </div>
-          </GlassPanel>
+          </Card>
 
           {loaded && (
-            <GlassPanel>
+            <Card>
               <PanelHeader label="Step 2" title="Result" />
               <div className="space-y-5 p-5 sm:p-6">
                 <VerdictBlock check={check} onRetry={() => void verify()} />
@@ -249,12 +250,12 @@ export function VerifyView() {
                   )}
                 </div>
               </div>
-            </GlassPanel>
+            </Card>
           )}
         </div>
 
         <div className="space-y-4">
-          <GlassPanel>
+          <Card variant="dark">
             <PanelHeader label="How it works" title="What is checked" />
             <ol className="space-y-3 p-5 text-[13.5px] leading-relaxed text-fg-2">
               <li>
@@ -268,11 +269,12 @@ export function VerifyView() {
                 content changed.
               </li>
             </ol>
-          </GlassPanel>
+          </Card>
           {env.useMocks && (
-            <p className="rounded-lg border border-amber-400/30 bg-amber-400/10 px-4 py-2.5 text-[13px] text-amber-200">
-              Mock mode: sample certificates hash correctly but are not anchored on MST.
-            </p>
+            <Card className="flex items-start gap-3 px-5 py-4 text-[13px] text-fg-2">
+              <Badge tone="warn">Mock mode</Badge>
+              <span>Sample certificates hash correctly but are not anchored on MST.</span>
+            </Card>
           )}
         </div>
       </div>
@@ -301,26 +303,34 @@ function VerdictBlock({ check, onRetry }: { check: Check; onRetry: () => void })
     );
   if (check.state === "tampered")
     return (
-      <div className="flex items-start gap-3">
-        <XCircle className="mt-0.5 size-6 shrink-0 text-red-300" />
+      <div>
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="text-[44px] font-semibold leading-none tracking-[-0.035em] text-fg sm:text-[56px]">TAMPERED</span>
+          <Badge tone="danger">
+            <XCircle className="size-3.5" /> Not anchored
+          </Badge>
+        </div>
         <div>
-          <div className="text-[17px] font-medium text-fg">TAMPERED</div>
-          <p className="text-[14px] text-fg-2">This hash was never anchored on MST: the certificate was changed after it was issued, or it was never anchored.</p>
+          <p className="mt-3 text-[14px] text-fg-2">This hash was never anchored on MST: the certificate was changed after it was issued, or it was never anchored.</p>
         </div>
       </div>
     );
   return (
-    <div className="flex items-start gap-3">
-      <CheckCircle2 className="mt-0.5 size-6 shrink-0 text-emerald-300" />
+    <div>
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="text-[44px] font-semibold leading-none tracking-[-0.035em] text-fg sm:text-[56px]">VALID</span>
+        <Badge tone="ok">
+          <CheckCircle2 className="size-3.5" /> Anchored on MST
+        </Badge>
+      </div>
       <div className="min-w-0">
-        <div className="text-[17px] font-medium text-fg">VALID</div>
-        <p className="text-[14px] text-fg-2">This exact certificate was anchored on MST at {formatUtc(fromUnix(check.at))} (block time, UTC).</p>
+        <p className="mt-3 text-[14px] text-fg-2">This exact certificate was anchored on MST at {formatUtc(fromUnix(check.at))} (block time, UTC).</p>
         {check.event && (
           <div className="mt-2 flex flex-wrap gap-4 font-mono text-[12.5px]">
-            <a href={explorer.tx(check.event.txHash)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-violet-300 hover:text-violet-200">
+            <a href={explorer.tx(check.event.txHash)} target="_blank" rel="noreferrer" className="inline-flex h-8 items-center gap-1 rounded-full border border-line-strong px-3 text-fg-2 hover:text-fg">
               Anchor tx <ExternalLink className="size-3" />
             </a>
-            <a href={explorer.block(check.event.blockNumber)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-violet-300 hover:text-violet-200">
+            <a href={explorer.block(check.event.blockNumber)} target="_blank" rel="noreferrer" className="inline-flex h-8 items-center gap-1 rounded-full border border-line-strong px-3 text-fg-2 hover:text-fg">
               Block #{check.event.blockNumber.toString()} <ExternalLink className="size-3" />
             </a>
           </div>

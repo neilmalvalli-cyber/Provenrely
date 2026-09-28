@@ -175,3 +175,12 @@
     backdrop-filter: none;
   }
 }
+
+/* Certificates inside the console: ink accents instead of violet. */
+.console-theme .doc {
+  --doc-accent: #0b0b0c;
+}
+.console-theme .doc[data-doc-theme="dark"] {
+  --doc-bg: #0b0b0c;
+  --doc-accent: #ffffff;
+}

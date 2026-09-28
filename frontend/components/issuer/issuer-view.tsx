@@ -8,7 +8,8 @@ import { isAddress, type Address, type Hex } from "viem";
 import { useAccount, usePublicClient, useWriteContract } from "wagmi";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
-import { GlassPanel, PageHeader, PanelHeader } from "@/components/ui/panel";
+import { Badge, Card } from "@/components/console/kit";
+import { PageHeader, PanelHeader } from "@/components/ui/panel";
 import { explorer } from "@/lib/chain/explorer";
 import { activeFlagsFromEvents, FLAG_REASONS, reasonLabel } from "@/lib/chain/flags";
 import { mstTestnet } from "@/lib/chain/mst";
@@ -148,11 +149,93 @@ export function IssuerView() {
     <>
       <PageHeader eyebrow="Issuer" title="Flag addresses" description="Issuers record fraud flags on MST. SafeSend blocks transfers to flagged addresses until the flag expires or is revoked." />
 
-      <div className="space-y-4">
-        <GlassPanel>
-          <PanelHeader label="New flag" title="Flag an address" />
+      <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_400px]">
+        <Card className="overflow-clip">
+          <PanelHeader
+            label="Registry"
+            title="Active flags"
+            action={
+              REGISTRY_READY ? (
+                <Button size="sm" variant="ghost" onClick={() => void flags.refetch()} disabled={flags.isFetching}>
+                  <RotateCcw className={cn(flags.isFetching && "animate-spin")} /> Refresh
+                </Button>
+              ) : undefined
+            }
+          />
+          <div className="p-5 sm:p-6">
+            {!REGISTRY_READY ? (
+              <p className="text-[14px] text-muted">The registry isn&apos;t configured yet, so there are no flags to show.</p>
+            ) : flags.isLoading ? (
+              <p className="flex items-center gap-2 text-[14px] text-fg-2">
+                <Loader2 className="size-4 animate-spin" /> Reading Flagged and Revoked events from MST…
+              </p>
+            ) : flags.error ? (
+              <p className="text-[14px] text-red-300">Couldn&apos;t read flags: {flags.error.message}</p>
+            ) : !flags.data?.length ? (
+              <p className="text-[14px] text-muted">No active flags.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-[13.5px]">
+                  <thead className="text-[11px] font-semibold uppercase tracking-[0.06em] text-muted">
+                    <tr>
+                      <th className="pb-2 pr-4 font-normal">Address</th>
+                      <th className="pb-2 pr-4 font-normal">Status</th>
+                      <th className="pb-2 pr-4 font-normal">Reason</th>
+                      <th className="pb-2 pr-4 font-normal">Issuer</th>
+                      <th className="pb-2 pr-4 font-normal">Expires (UTC)</th>
+                      <th className="pb-2 pr-4 font-normal">Tx</th>
+                      <th className="pb-2 font-normal" />
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-line">
+                    {flags.data.map((f) => (
+                      <tr key={f.subject}>
+                        <td className="py-2.5 pr-4 font-mono">
+                          <a href={explorer.address(f.subject)} target="_blank" rel="noreferrer" className="hover:underline">
+                            {shortHash(f.subject, 8, 6)}
+                          </a>
+                        </td>
+                        <td className="py-3 pr-4">
+                          <Badge tone="danger">Active</Badge>
+                        </td>
+                        <td className="py-2.5 pr-4 text-fg">{reasonLabel(f.reason)}</td>
+                        <td className="py-2.5 pr-4 font-mono">
+                          <a href={explorer.address(f.issuer)} target="_blank" rel="noreferrer" className="hover:underline">
+                            {shortHash(f.issuer, 6, 4)}
+                          </a>
+                          {address && f.issuer.toLowerCase() === address.toLowerCase() && <span className="ml-1.5 rounded-full bg-panel-3 px-2 py-0.5 font-sans text-[11px] font-medium text-fg">you</span>}
+                        </td>
+                        <td className="py-2.5 pr-4 font-mono">{f.expiry === 0n ? "No expiry" : formatUtc(fromUnix(f.expiry))}</td>
+                        <td className="py-2.5 pr-4">
+                          <a href={explorer.tx(f.txHash)} target="_blank" rel="noreferrer" className="inline-flex h-8 items-center gap-1 rounded-full border border-line-strong px-3 font-mono text-[12px] text-fg-2 hover:text-fg">
+                            {shortHash(f.txHash, 6, 4)} <ExternalLink className="size-3" />
+                          </a>
+                        </td>
+                        <td className="py-2.5 text-right">
+                          {canRevoke(f.issuer) && (
+                            <Button size="sm" variant="danger" disabled={busy !== null} onClick={() => void write("revoke", { subject: f.subject })}>
+                              {busy === f.subject ? <Loader2 className="animate-spin" /> : null}
+                              Revoke
+                            </Button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </Card>
+        <Card variant="dark" className="self-start">
+          <PanelHeader label="New flag" title="New flag" description="Record a fraud flag on MST." />
           <form onSubmit={submit} className="space-y-4 p-5 sm:p-6">
-            {writeBlocker && <p className="rounded-lg border border-amber-400/30 bg-amber-400/10 px-4 py-2.5 text-[13.5px] text-amber-200">{writeBlocker}</p>}
+            {writeBlocker && (
+              <p className="flex items-start gap-2.5 rounded-[var(--radius-tile)] bg-panel-2 px-4 py-3 text-[13.5px] text-fg-2">
+                <Badge tone="warn" className="shrink-0">Read-only</Badge>
+                <span>{writeBlocker}</span>
+              </p>
+            )}
             {issuer.isLoading && connected && REGISTRY_READY && (
               <p className="flex items-center gap-2 text-[13.5px] text-fg-2">
                 <Loader2 className="size-4 animate-spin" /> Checking issuer access…
@@ -196,7 +279,7 @@ export function IssuerView() {
               </div>
               <div>
                 <Label htmlFor="evidence">Evidence file</Label>
-                <label className="flex h-11 cursor-pointer items-center gap-2 rounded-lg border border-dashed border-line-strong px-3.5 text-[14px] text-fg-2 hover:bg-white/[0.03]">
+                <label className="flex h-11 cursor-pointer items-center gap-2 rounded-full border border-dashed border-line-strong px-3.5 text-[14px] text-fg-2 hover:bg-white/[0.03]">
                   <FileUp className="size-4 shrink-0" />
                   <span className="truncate">{evidence ? ("hash" in evidence ? evidence.name : `Hashing ${evidence.hashing}…`) : "Choose a file"}</span>
                   <input id="evidence" type="file" onChange={onEvidence} className="sr-only" />
@@ -212,81 +295,8 @@ export function IssuerView() {
               {formError && <p className="text-[13.5px] text-red-300">{formError}</p>}
             </fieldset>
           </form>
-        </GlassPanel>
+        </Card>
 
-        <GlassPanel className="overflow-clip">
-          <PanelHeader
-            label="Registry"
-            title="Active flags"
-            action={
-              REGISTRY_READY ? (
-                <Button size="sm" variant="ghost" onClick={() => void flags.refetch()} disabled={flags.isFetching}>
-                  <RotateCcw className={cn(flags.isFetching && "animate-spin")} /> Refresh
-                </Button>
-              ) : undefined
-            }
-          />
-          <div className="p-5 sm:p-6">
-            {!REGISTRY_READY ? (
-              <p className="text-[14px] text-muted">The registry isn&apos;t configured yet, so there are no flags to show.</p>
-            ) : flags.isLoading ? (
-              <p className="flex items-center gap-2 text-[14px] text-fg-2">
-                <Loader2 className="size-4 animate-spin" /> Reading Flagged and Revoked events from MST…
-              </p>
-            ) : flags.error ? (
-              <p className="text-[14px] text-red-300">Couldn&apos;t read flags: {flags.error.message}</p>
-            ) : !flags.data?.length ? (
-              <p className="text-[14px] text-muted">No active flags.</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-[13.5px]">
-                  <thead className="text-[12px] text-muted">
-                    <tr>
-                      <th className="pb-2 pr-4 font-normal">Address</th>
-                      <th className="pb-2 pr-4 font-normal">Reason</th>
-                      <th className="pb-2 pr-4 font-normal">Issuer</th>
-                      <th className="pb-2 pr-4 font-normal">Expires (UTC)</th>
-                      <th className="pb-2 pr-4 font-normal">Tx</th>
-                      <th className="pb-2 font-normal" />
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-line">
-                    {flags.data.map((f) => (
-                      <tr key={f.subject}>
-                        <td className="py-2.5 pr-4 font-mono">
-                          <a href={explorer.address(f.subject)} target="_blank" rel="noreferrer" className="hover:underline">
-                            {shortHash(f.subject, 8, 6)}
-                          </a>
-                        </td>
-                        <td className="py-2.5 pr-4 text-fg">{reasonLabel(f.reason)}</td>
-                        <td className="py-2.5 pr-4 font-mono">
-                          <a href={explorer.address(f.issuer)} target="_blank" rel="noreferrer" className="hover:underline">
-                            {shortHash(f.issuer, 6, 4)}
-                          </a>
-                          {address && f.issuer.toLowerCase() === address.toLowerCase() && <span className="ml-1.5 font-sans text-[12px] text-violet-300">you</span>}
-                        </td>
-                        <td className="py-2.5 pr-4 font-mono">{f.expiry === 0n ? "No expiry" : formatUtc(fromUnix(f.expiry))}</td>
-                        <td className="py-2.5 pr-4">
-                          <a href={explorer.tx(f.txHash)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 font-mono text-violet-300 hover:text-violet-200">
-                            {shortHash(f.txHash, 6, 4)} <ExternalLink className="size-3" />
-                          </a>
-                        </td>
-                        <td className="py-2.5 text-right">
-                          {canRevoke(f.issuer) && (
-                            <Button size="sm" variant="danger" disabled={busy !== null} onClick={() => void write("revoke", { subject: f.subject })}>
-                              {busy === f.subject ? <Loader2 className="animate-spin" /> : null}
-                              Revoke
-                            </Button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        </GlassPanel>
       </div>
     </>
   );

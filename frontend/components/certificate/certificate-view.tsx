@@ -4,7 +4,8 @@ import { BadgeCheck, Download, ExternalLink, Loader2, Share2, TriangleAlert } fr
 import { QRCodeSVG } from "qrcode.react";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { usePublicClient } from "wagmi";
-import { VerdictBadge } from "@/components/scan/verdict";
+import { Card } from "@/components/console/kit";
+import { VERDICT_LABEL, VerdictBadge } from "@/components/scan/verdict";
 import { useToast } from "@/components/ui/toast";
 import { api, errorMessage } from "@/lib/api/client";
 import type { Certificate, CustodyAction } from "@/lib/api/types";
@@ -37,11 +38,11 @@ function Field({ label, children, mono }: { label: string; children: ReactNode; 
 function Hash({ label, value, href }: { label: string; value: string; href?: string }) {
   return (
     <div>
-      <div className="text-[11.5px] text-[var(--doc-muted)]">{label}</div>
-      <div className="mt-1.5 flex items-start gap-2 rounded-lg border border-[var(--doc-line)] bg-[var(--doc-inset)] px-3.5 py-2.5">
-        <code className="min-w-0 flex-1 break-all font-mono text-[12px] leading-relaxed text-[var(--doc-fg)]">{value}</code>
+      <div className="text-[11.5px] text-muted">{label}</div>
+      <div className="mt-1.5 flex items-start gap-2 rounded-[var(--radius-tile)] border border-line bg-panel-2 px-3.5 py-2.5">
+        <code className="min-w-0 flex-1 break-all font-mono text-[12px] leading-relaxed text-fg">{value}</code>
         {href && (
-          <a href={href} target="_blank" rel="noreferrer" className="shrink-0 text-[var(--doc-accent)]" aria-label={`${label} on MSTScan`}>
+          <a href={href} target="_blank" rel="noreferrer" className="shrink-0 text-fg-2 hover:text-fg" aria-label={`${label} on MSTScan`}>
             <ExternalLink className="size-4" />
           </a>
         )}
@@ -143,32 +144,36 @@ export function CertificateView({ id }: { id: string }) {
   const txHash = anchor.state === "anchored" ? (anchor.txHash ?? c.anchor?.txHash ?? null) : null;
 
   return (
-    <main className="mx-auto max-w-4xl px-4 py-10 sm:px-6 print:max-w-none print:p-0">
+    <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_340px] print:block">
       {env.useMocks && (
-        <p className="no-print mb-4 rounded-lg border border-amber-400/30 bg-amber-400/10 px-4 py-2.5 text-[13px] text-amber-900 dark:text-amber-200 [.doc[data-doc-theme=dark]_&]:text-amber-200">
+        <p className="no-print flex items-center gap-2.5 rounded-[var(--radius-card)] bg-[#fff] px-5 py-3 text-[13px] text-fg-2 shadow-[var(--shadow-card)] xl:col-span-2">
+          <span className="size-2 shrink-0 rounded-full bg-warn" />
           Sample certificate (mock mode): its hash is real and verifiable, but it is not anchored on MST.
         </p>
       )}
-      <article className="overflow-hidden rounded-2xl border border-[var(--doc-line)] bg-[var(--doc-bg)]">
+      <article className="overflow-hidden rounded-[var(--radius-card)] border border-[var(--doc-line)] bg-[var(--doc-bg)] shadow-[var(--shadow-card)]">
         <div className="flex flex-col gap-6 border-b border-[var(--doc-line)] p-6 sm:flex-row sm:items-start sm:justify-between sm:p-8">
           <div className="min-w-0">
             <div className="flex items-center gap-2 text-[12.5px] font-medium text-[var(--doc-accent)]">
               <BadgeCheck className="size-4" /> Risk certificate
             </div>
             <h1 className="mt-2 break-all font-mono text-[18px] text-[var(--doc-fg)] sm:text-[20px]">{c.id}</h1>
-            <div className="mt-4 flex flex-wrap items-center gap-3">
-              <VerdictBadge verdict={b.verdict} />
-              <span className="text-[14px] text-[var(--doc-fg-2)]">
-                Score <span className="font-mono text-[var(--doc-fg)]">{b.score}</span> / 100
-              </span>
-              <AnchorBadge anchor={anchor} txHash={txHash} />
+            <div className="mt-6 flex flex-wrap items-end gap-x-8 gap-y-4">
+              <div>
+                <div className="text-[12.5px] text-[var(--doc-muted)]">Verdict</div>
+                <div className="mt-1 flex flex-wrap items-center gap-3">
+                  <span className="text-[40px] font-semibold leading-none tracking-[-0.035em] text-[var(--doc-fg)]">{VERDICT_LABEL[b.verdict]}</span>
+                  <VerdictBadge verdict={b.verdict} />
+                </div>
+              </div>
+              <div>
+                <div className="text-[12.5px] text-[var(--doc-muted)]">Risk score</div>
+                <div className="mt-1 text-[28px] font-semibold leading-none tabular-nums text-[var(--doc-fg)]">
+                  {b.score}
+                  <span className="text-[16px] font-medium text-[var(--doc-muted)]"> / 100</span>
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="shrink-0 text-center">
-            <div className="inline-block rounded-xl bg-white p-2.5">
-              <QRCodeSVG value={verifyUrl} size={116} />
-            </div>
-            <div className="mt-1.5 text-[11px] text-[var(--doc-muted)]">Scan to verify</div>
           </div>
         </div>
 
@@ -198,21 +203,6 @@ export function CertificateView({ id }: { id: string }) {
           </Field>
         </div>
 
-        <div className="space-y-4 border-b border-[var(--doc-line)] p-6 sm:p-8">
-          <Hash label="Certificate hash (SHA-256, recomputed in your browser)" value={hash ?? "computing…"} />
-          {recordMatches === false && (
-            <p className="flex items-center gap-2 text-[13px] text-red-600">
-              <TriangleAlert className="size-4" /> This does not match the hash recorded by the issuer — the certificate was altered.
-            </p>
-          )}
-          {txHash ? <Hash label="Anchor transaction" value={txHash} href={explorer.tx(txHash)} /> : <Field label="Anchor transaction">—</Field>}
-          {anchor.state === "anchored" && anchor.blockNumber !== null && (
-            <a href={explorer.block(anchor.blockNumber)} target="_blank" rel="noreferrer" className="inline-block font-mono text-[12.5px] text-[var(--doc-accent)] hover:underline">
-              Block #{anchor.blockNumber.toString()}
-            </a>
-          )}
-        </div>
-
         <div className="border-b border-[var(--doc-line)] p-6 sm:p-8">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-[14px] font-medium text-[var(--doc-fg)]">Chain of custody</h2>
@@ -222,7 +212,7 @@ export function CertificateView({ id }: { id: string }) {
                   key={a}
                   onClick={() => custodyAction(a, c)}
                   disabled={busy !== null}
-                  className="inline-flex h-9 items-center gap-2 rounded-lg border border-[var(--doc-line)] px-3 text-[13px] text-[var(--doc-fg)] hover:bg-[var(--doc-inset)] disabled:opacity-50"
+                  className="inline-flex h-9 items-center gap-2 rounded-full border border-[var(--doc-line)] px-4 text-[13px] text-[var(--doc-fg)] hover:bg-[var(--doc-inset)] disabled:opacity-50"
                 >
                   {busy === a ? <Loader2 className="size-4 animate-spin" /> : a === "share" ? <Share2 className="size-4" /> : <Download className="size-4" />}
                   {a === "share" ? "Share" : "Export JSON"}
@@ -242,7 +232,7 @@ export function CertificateView({ id }: { id: string }) {
             ) : custody.status === "done" && custody.data.length === 0 ? (
               <p>No shares or exports logged yet.</p>
             ) : custody.status === "done" ? (
-              <ul className="divide-y divide-[var(--doc-line)] rounded-xl border border-[var(--doc-line)]">
+              <ul className="divide-y divide-[var(--doc-line)] rounded-[var(--radius-tile)] border border-[var(--doc-line)]">
                 {custody.data.map((e) => (
                   <li key={`${e.txHash}-${e.action}`} className="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
                     <span className="text-[var(--doc-fg)]">{ACTION_NAME[e.action] ?? `Action ${e.action}`}</span>
@@ -265,7 +255,37 @@ export function CertificateView({ id }: { id: string }) {
           <span className="shrink-0 font-mono tracking-[0.2em]">{PRODUCT_WORDMARK}</span>
         </div>
       </article>
-    </main>
+      <Card variant="dark" className="overflow-hidden xl:sticky xl:top-10">
+        <div className="px-5 pt-5 sm:px-6 sm:pt-6">
+          <h2 className="text-[17px] font-semibold text-fg">Proof</h2>
+          <p className="mt-0.5 text-[13px] text-muted">Hash, anchor status and a link anyone can check</p>
+          <div className="mt-4">
+            <AnchorBadge anchor={anchor} txHash={txHash} />
+          </div>
+        </div>
+            <div className="space-y-4 border-t border-line px-5 py-5 sm:px-6">
+            <Hash label="Certificate hash (SHA-256, recomputed in your browser)" value={hash ?? "computing…"} />
+            {recordMatches === false && (
+              <p className="flex items-center gap-2 text-[13px] text-red-300">
+                <TriangleAlert className="size-4" /> This does not match the hash recorded by the issuer — the certificate was altered.
+              </p>
+            )}
+            {txHash ? <Hash label="Anchor transaction" value={txHash} href={explorer.tx(txHash)} /> : <Hash label="Anchor transaction" value="—" />}
+            {anchor.state === "anchored" && anchor.blockNumber !== null && (
+              <a href={explorer.block(anchor.blockNumber)} target="_blank" rel="noreferrer" className="inline-block font-mono text-[12.5px] text-fg-2 hover:underline">
+                Block #{anchor.blockNumber.toString()}
+              </a>
+            )}
+          </div>
+
+        <div className="flex items-center gap-4 border-t border-line px-5 py-5 sm:px-6">
+          <div className="rounded-[var(--radius-tile)] bg-[#fff] p-2.5">
+            <QRCodeSVG value={verifyUrl} size={104} />
+          </div>
+          <p className="text-[12.5px] leading-relaxed text-muted">Scan to verify this certificate on any phone. No account needed.</p>
+        </div>
+      </Card>
+    </div>
   );
 }
 
@@ -277,9 +297,9 @@ function AnchorBadge({ anchor, txHash }: { anchor: Anchor; txHash: `0x${string}`
         href={txHash ? explorer.tx(txHash) : env.explorerUrl}
         target="_blank"
         rel="noreferrer"
-        className={`${base} border-emerald-500/40 bg-emerald-500/10 text-emerald-700 hover:underline [.doc[data-doc-theme=dark]_&]:text-emerald-200`}
+        className={`${base} border-line-strong text-fg-2 hover:text-fg hover:underline`}
       >
-        <BadgeCheck className="size-3.5" /> Anchored on MST
+        <span className="size-2 rounded-full bg-ok" /> Anchored on MST
       </a>
     );
   const text = {
@@ -288,5 +308,10 @@ function AnchorBadge({ anchor, txHash }: { anchor: Anchor; txHash: `0x${string}`
     none: "Not anchored on MST",
     error: "Couldn't reach MST",
   }[anchor.state];
-  return <span className={`${base} border-[var(--doc-line)] text-[var(--doc-muted)]`}>{text}</span>;
+  const dot = anchor.state === "none" || anchor.state === "error" ? "bg-danger" : anchor.state === "checking" ? "bg-muted" : "bg-warn";
+  return (
+    <span className={`${base} border-line-strong text-fg-2`}>
+      <span className={`size-2 shrink-0 rounded-full ${dot}`} /> {text}
+    </span>
+  );
 }

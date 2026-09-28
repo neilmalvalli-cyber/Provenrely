@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { CertificateView } from "@/components/certificate/certificate-view";
+import { AppShell } from "@/components/layout/app-shell";
 import { DocShell } from "@/components/proof/doc-shell";
 
 type Props = { params: Promise<{ id: string }> };
@@ -13,8 +14,10 @@ export default async function CertificatePage({ params }: Props) {
   const { id } = await params;
   const certId = decodeURIComponent(id);
   return (
-    <DocShell verifyHref={`/verify?cert=${encodeURIComponent(certId)}`}>
-      <CertificateView id={certId} />
-    </DocShell>
+    <AppShell>
+      <DocShell verifyHref={`/verify?cert=${encodeURIComponent(certId)}`}>
+        <CertificateView id={certId} />
+      </DocShell>
+    </AppShell>
   );
 }
