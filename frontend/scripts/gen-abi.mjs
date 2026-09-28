@@ -1,6 +1,6 @@
 // Generates the contract ABIs from Foundry build output (repo root: `forge build` → out/<Name>.sol/<Name>.json):
 //   frontend/abi/*.ts             (typed `as const` for viem)
-//   backend/src/abi/*.json        (plain JSON for ethers; only contracts the backend calls)
+//   backend/src/abi/*.json        (plain JSON for ethers)
 // Usage (from frontend/): npm run abi        — run `forge build` in the repo root first.
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
@@ -12,7 +12,7 @@ const out = join(root, "out");
 
 const CONTRACTS = [
   { name: "ProvenrelyRegistry", file: "registry.ts", exportName: "registryAbi", backend: true },
-  { name: "SafeSend", file: "safe-send.ts", exportName: "safeSendAbi", backend: false },
+  { name: "SafeSend", file: "safe-send.ts", exportName: "safeSendAbi", backend: true },
 ];
 
 let failed = false;
