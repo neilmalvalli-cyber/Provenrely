@@ -115,12 +115,12 @@ function TopBar() {
       <Link href="/dashboard" className="text-[#0b0b0c] lg:hidden" aria-label="Dashboard">
         <LogoMark className="h-8" />
       </Link>
-      <div className="min-w-0 flex-1">
-        <div className="hidden text-[13px] font-medium text-muted sm:block">{sub}</div>
+      <div className="order-last w-full min-w-0 md:order-none md:w-auto md:flex-1">
+        <div className="text-[13px] font-medium text-muted">{sub}</div>
         <h1 className="truncate text-[26px] font-semibold leading-tight tracking-[-0.03em] text-fg sm:text-[34px]">{title}</h1>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="ml-auto flex items-center gap-2">
         <NetworkStatus className="hidden border-black/[0.08] bg-[#fff]/70 md:flex" />
         {env.useMocks && <DemoBadge className="hidden bg-[#fff]/70 xl:inline-flex" />}
         <PillLink href="/scan" className="hidden sm:inline-flex">
@@ -132,7 +132,7 @@ function TopBar() {
         <NotificationsMenu />
         <ConnectButton />
       </div>
-      <div className="w-full md:hidden">
+      <div className="order-last w-full md:hidden">
         <NetworkStatus className="w-fit border-black/[0.08] bg-[#fff]/70" />
       </div>
     </header>
