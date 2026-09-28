@@ -1,4 +1,4 @@
-import type { Address, Hex, PublicClient } from "viem";
+import { zeroHash, type Address, type Hex, type PublicClient } from "viem";
 import { registryAbi } from "@/abi/registry";
 import { env } from "@/lib/config/env";
 import { MST_CONFIGURED } from "./mst";
@@ -48,9 +48,10 @@ async function events(client: PublicClient, eventName: EventName, args: Record<s
   }
 }
 
-/** Seconds since epoch when the hash was anchored; 0 = never anchored. One fast view call. */
+/** Seconds since epoch when the hash was anchored; 0 = never anchored. One view call: certificates(hash).timestamp. */
 export async function readAnchoredAt(client: PublicClient, certHash: Hex): Promise<bigint> {
-  return client.readContract({ ...registry, functionName: "anchoredAt", args: [certHash] });
+  const [, timestamp] = await client.readContract({ ...registry, functionName: "certificates", args: [certHash] });
+  return timestamp;
 }
 
 export type AnchorEvent = { txHash: Hex; blockNumber: bigint; timestamp: bigint };
@@ -77,27 +78,38 @@ export type CustodyEvent = { actor: Address; action: number; timestamp: bigint; 
 export async function custodyEvents(client: PublicClient, certHash: Hex, fromBlock = 0n): Promise<CustodyEvent[]> {
   const logs = await events(client, "CustodyLogged", { certHash }, fromBlock);
   return logs.map((l) => {
-    const a = l.args as { actor: Address; action: number; timestamp: bigint };
-    return { actor: a.actor, action: a.action, timestamp: a.timestamp, txHash: l.transactionHash, blockNumber: l.blockNumber };
+    const a = l.args as { actor: Address; action: number; ts: bigint };
+    return { actor: a.actor, action: a.action, timestamp: a.ts, txHash: l.transactionHash, blockNumber: l.blockNumber };
   });
 }
 
-/** ISSUER_ROLE never changes for a deployed registry, so it is read once and cached. */
+/** The ISSUER role id never changes for a deployed registry, so it is read once and cached. */
 let issuerRole: Promise<Hex> | null = null;
 
-/** Whether `account` holds ISSUER_ROLE (OpenZeppelin AccessControl: ISSUER_ROLE() + hasRole()). */
-export async function isIssuer(client: PublicClient, account: Address): Promise<boolean> {
-  issuerRole ??= client.readContract({ ...registry, functionName: "ISSUER_ROLE" }).catch((e: unknown) => {
+export type Roles = { issuer: boolean; admin: boolean };
+
+/**
+ * The wallet's AccessControl roles: hasRole(ISSUER(), account) and hasRole(DEFAULT_ADMIN_ROLE, account).
+ * Issuers can flag; the contract lets a flag's own issuer or an admin revoke it.
+ */
+export async function readRoles(client: PublicClient, account: Address): Promise<Roles> {
+  issuerRole ??= client.readContract({ ...registry, functionName: "ISSUER" }).catch((e: unknown) => {
     issuerRole = null;
     throw e;
   });
-  return client.readContract({ ...registry, functionName: "hasRole", args: [await issuerRole, account] });
+  const [issuer, admin] = await Promise.all([
+    client.readContract({ ...registry, functionName: "hasRole", args: [await issuerRole, account] }),
+    client.readContract({ ...registry, functionName: "hasRole", args: [zeroHash, account] }), // DEFAULT_ADMIN_ROLE = 0x00…00
+  ]);
+  return { issuer, admin };
 }
 
-export type FlagRecord = { issuer: Address; reason: number; evidenceHash: Hex; expiry: bigint; revoked: boolean };
+export type FlagRecord = { issuer: Address; reason: number; evidenceHash: Hex; expiry: bigint; revoked: boolean; active: boolean };
 
+/** getFlag(subject) → the stored flag plus the contract's own `active` verdict (exists, not revoked, not expired). */
 export async function readFlag(client: PublicClient, subject: Address): Promise<FlagRecord> {
-  return client.readContract({ ...registry, functionName: "getFlag", args: [subject] });
+  const [f, active] = await client.readContract({ ...registry, functionName: "getFlag", args: [subject] });
+  return { ...f, active };
 }
 
 export type FlagEvent = { subject: Address; issuer: Address; reason: number; evidenceHash: Hex; expiry: bigint; txHash: Hex; blockNumber: bigint };

@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { DataField, GlassPanel, PageHeader, PanelHeader } from "@/components/ui/panel";
 import { explorer } from "@/lib/chain/explorer";
-import { isActiveFlag, reasonLabel } from "@/lib/chain/flags";
+import { reasonLabel } from "@/lib/chain/flags";
 import { MST_CONFIGURED, mstTestnet } from "@/lib/chain/mst";
 import { fromUnix, readFlag, REGISTRY_READY } from "@/lib/chain/registry";
 import { isUserRejection, revertOf, trackTx, txErrorMessage } from "@/lib/chain/tx";
@@ -68,7 +68,8 @@ export function ShieldView() {
     queryFn: () => readFlag(client!, recipient!),
     enabled: REGISTRY_READY && !!client && !!recipient,
   });
-  const flagged = flag.data ? isActiveFlag(flag.data) : false;
+  // the contract decides: getFlag returns `active` (exists, not revoked, not expired)
+  const flagged = flag.data?.active ?? false;
 
   const connected = status === "connected" && !!address;
   const onMst = connected && chainId === mstTestnet.id;

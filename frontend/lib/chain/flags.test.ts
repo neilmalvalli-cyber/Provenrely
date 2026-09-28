@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Address, Hex } from "viem";
-import { activeFlagsFromEvents, isActiveFlag } from "./flags";
+import { activeFlagsFromEvents } from "./flags";
 import type { FlagEvent, RevokeEvent } from "./registry";
 
 const A = "0x00000000000000000000000000000000000000aa" as Address;
@@ -42,15 +42,5 @@ describe("activeFlagsFromEvents", () => {
 
   it("matches subjects case-insensitively", () => {
     expect(activeFlagsFromEvents([flag(A, 1)], [revoke(A.toUpperCase().replace("0X", "0x") as Address, 2)])).toEqual([]);
-  });
-});
-
-describe("isActiveFlag", () => {
-  const base = { issuer: ISSUER, reason: 1, evidenceHash: tx(0), expiry: future, revoked: false };
-  it("is false for an empty record, a revoked or an expired flag", () => {
-    expect(isActiveFlag({ ...base, issuer: "0x0000000000000000000000000000000000000000" })).toBe(false);
-    expect(isActiveFlag({ ...base, revoked: true })).toBe(false);
-    expect(isActiveFlag({ ...base, expiry: past })).toBe(false);
-    expect(isActiveFlag(base)).toBe(true);
   });
 });

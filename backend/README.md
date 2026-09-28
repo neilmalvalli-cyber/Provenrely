@@ -96,27 +96,36 @@ expected = 0x3cf1dc97d956b7913a3d49837fecb6964384a87f0c40acff4316bba24b23042e
 
 ## Contracts (MST Testnet)
 
+Source of truth: `src/ProvenrelyRegistry.sol` (Foundry, repo root). The frontend's ABI is generated from its build
+output (`forge build`, then `cd frontend && npm run abi`), so this summary is for reading only.
+
 ```solidity
 struct Flag { address issuer; uint16 reason; bytes32 evidenceHash; uint64 expiry; bool revoked; }
 
 function flag(address subject, uint16 reason, bytes32 evidenceHash, uint64 expiry);
-function revoke(address subject);
+function revoke(address subject);                                  // only the flag's issuer or an admin
 function isFlagged(address subject) view returns (bool);
-function getFlag(address subject) view returns (Flag);
+function getFlag(address subject) view returns (Flag f, bool active);   // active = exists, not revoked, not expired
 function anchorCertificate(bytes32 certHash, address subject);
-function anchoredAt(bytes32 certHash) view returns (uint64);      // 0 = never anchored
+function certificates(bytes32 certHash) view returns (address subject, uint64 timestamp);  // timestamp 0 = never anchored
 function logCustody(bytes32 certHash, uint8 action);               // 1 = share, 2 = export
 
-// OpenZeppelin AccessControl — issuers hold ISSUER_ROLE (the frontend checks hasRole(ISSUER_ROLE(), wallet))
-function ISSUER_ROLE() view returns (bytes32);
+// OpenZeppelin AccessControl. flag() needs ISSUER, anchorCertificate() needs RELAYER (the backend's wallet).
+// The frontend checks hasRole(ISSUER(), wallet) and hasRole(DEFAULT_ADMIN_ROLE, wallet).
+function ISSUER() view returns (bytes32);
+function RELAYER() view returns (bytes32);
 function hasRole(bytes32 role, address account) view returns (bool);
+function addIssuer(address a);                                     // admin only
 
 event Flagged(address indexed subject, address indexed issuer, uint16 reason, bytes32 evidenceHash, uint64 expiry);
 event Revoked(address indexed subject, address indexed by);
 event CertificateAnchored(bytes32 indexed certHash, address indexed subject, uint64 timestamp);
-event CustodyLogged(bytes32 indexed certHash, address indexed actor, uint8 action, uint64 timestamp);
+event CustodyLogged(bytes32 indexed certHash, address indexed actor, uint8 action, uint64 ts);
 
-// SafeSend
+error AlreadyFlagged(address subject);  error NotFlagged(address subject);  error NotAllowed();  error BadExpiry();
+error ZeroValue();  error AlreadyAnchored(bytes32 certHash);  error NotAnchored(bytes32 certHash);  error BadAction(uint8 action);
+
+// SafeSend — not in this repo yet; frontend/abi/safe-send.ts is hand-written until it is (npm run abi picks it up)
 function send(address payable to) payable;
 error RecipientFlagged(address to);
 ```

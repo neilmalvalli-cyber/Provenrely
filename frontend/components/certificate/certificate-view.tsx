@@ -261,7 +261,7 @@ export function CertificateView({ id }: { id: string }) {
         </div>
 
         <div className="flex items-center justify-between gap-4 p-6 text-[12px] text-[var(--doc-muted)] sm:p-8">
-          <span>Verify independently: recompute SHA-256(salt + canonical body) and read anchoredAt(hash) on MST.</span>
+          <span>Verify independently: recompute SHA-256(salt + canonical body) and read certificates(hash) on MST (timestamp 0 = not anchored).</span>
           <span className="shrink-0 font-mono tracking-[0.2em]">{PRODUCT_WORDMARK}</span>
         </div>
       </article>

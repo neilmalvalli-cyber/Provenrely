@@ -12,7 +12,7 @@ import { GlassPanel, PageHeader, PanelHeader } from "@/components/ui/panel";
 import { explorer } from "@/lib/chain/explorer";
 import { activeFlagsFromEvents, FLAG_REASONS, reasonLabel } from "@/lib/chain/flags";
 import { mstTestnet } from "@/lib/chain/mst";
-import { flagEvents, fromUnix, isIssuer, registry, REGISTRY_READY, revokeEvents } from "@/lib/chain/registry";
+import { flagEvents, fromUnix, readRoles, registry, REGISTRY_READY, revokeEvents } from "@/lib/chain/registry";
 import { isUserRejection, trackTx, txErrorMessage } from "@/lib/chain/tx";
 import { cn, formatUtc, shortHash } from "@/lib/utils";
 
@@ -43,13 +43,15 @@ export function IssuerView() {
   const [busy, setBusy] = useState<"flag" | Address | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
-  // Issuer check: the registry uses OpenZeppelin AccessControl — hasRole(ISSUER_ROLE(), wallet).
+  // Roles via OpenZeppelin AccessControl: hasRole(ISSUER(), wallet) and hasRole(DEFAULT_ADMIN_ROLE, wallet).
   const issuer = useQuery({
     queryKey: ["is-issuer", address],
     enabled: REGISTRY_READY && !!client && connected,
-    queryFn: () => isIssuer(client!, address!),
+    queryFn: () => readRoles(client!, address!),
   });
-  const canIssue = issuer.data === true;
+  const canIssue = issuer.data?.issuer === true;
+  // The contract lets only the flag's own issuer or an admin revoke it.
+  const canRevoke = (flagIssuer: Address) => onMst && !!address && (issuer.data?.admin === true || flagIssuer.toLowerCase() === address.toLowerCase());
 
   const flags = useQuery({
     queryKey: ["active-flags"],
@@ -270,7 +272,7 @@ export function IssuerView() {
                           </a>
                         </td>
                         <td className="py-2.5 text-right">
-                          {canIssue && onMst && (
+                          {canRevoke(f.issuer) && (
                             <Button size="sm" variant="danger" disabled={busy !== null} onClick={() => void write("revoke", { subject: f.subject })}>
                               {busy === f.subject ? <Loader2 className="animate-spin" /> : null}
                               Revoke

@@ -53,7 +53,7 @@ function parseCertificate(text: string, source: string): Loaded {
 
 /**
  * Verify a certificate without trusting the backend: the hash is recomputed here from body + salt,
- * and the verdict comes only from anchoredAt(hash) on MST.
+ * and the verdict comes only from certificates(hash) on MST (timestamp 0 = never anchored).
  */
 export function VerifyView() {
   const params = useSearchParams();
@@ -264,7 +264,7 @@ export function VerifyView() {
                 <span className="font-mono text-violet-300">2.</span> Its SHA-256 is computed in your browser.
               </li>
               <li>
-                <span className="font-mono text-violet-300">3.</span> MST is asked when that exact hash was anchored (<code className="font-mono">anchoredAt</code>). Never anchored means the
+                <span className="font-mono text-violet-300">3.</span> MST is asked when that exact hash was anchored (<code className="font-mono">certificates(hash)</code>). Never anchored means the
                 content changed.
               </li>
             </ol>

@@ -1,5 +1,5 @@
-import { zeroAddress, type Address } from "viem";
-import type { FlagEvent, FlagRecord, RevokeEvent } from "./registry";
+import type { Address } from "viem";
+import type { FlagEvent, RevokeEvent } from "./registry";
 
 /**
  * Flag reason codes (the registry stores a uint16). Source of truth, mirrored in backend/README.md —
@@ -18,11 +18,6 @@ export const FLAG_REASONS: { code: number; label: string }[] = [
 export const reasonLabel = (code: number) => FLAG_REASONS.find((r) => r.code === code)?.label ?? `Reason ${code}`;
 
 const nowSec = () => BigInt(Math.floor(Date.now() / 1000));
-
-/** A getFlag() result is active when it exists, isn't revoked and hasn't expired (expiry 0 = no expiry). */
-export function isActiveFlag(f: FlagRecord): boolean {
-  return f.issuer !== zeroAddress && !f.revoked && (f.expiry === 0n || f.expiry > nowSec());
-}
 
 /**
  * Current flags from the event history: the latest Flagged event per subject, dropped if a Revoked

@@ -65,14 +65,15 @@ Files: `components/shield/shield-view.tsx`, `app/(console)/shield/page.tsx`, `li
   browser (never uploaded), expiry date (end of day UTC, must be in the future). Simulated before sending so contract
   rejections show a reason.
 - Active flags from `Flagged` + `Revoked` events (latest flag per subject, minus revoked/expired), with Revoke.
-- Issuer check: `hasRole(ISSUER_ROLE(), wallet)` (OpenZeppelin AccessControl; `ISSUER_ROLE` read once and cached,
-  `isIssuer()` in `lib/chain/registry.ts`). Not an issuer → read-only message; list stays visible.
+- Roles: `hasRole(ISSUER(), wallet)` and `hasRole(DEFAULT_ADMIN_ROLE, wallet)` (`readRoles()` in `lib/chain/registry.ts`;
+  `ISSUER` read once and cached). Not an issuer → read-only form; list stays visible. Revoke is shown only on your own
+  flags, or on all flags for an admin (contract rule). (Updated in step 8.)
 - Reason codes: `FLAG_REASONS` in `lib/chain/flags.ts` is the source of truth (1 Phishing, 2 Investment scam,
   3 Impersonation, 4 Ransomware, 5 Money mule, 6 Stolen funds, 99 Other), mirrored in `backend/README.md`.
 
 Files: `components/issuer/issuer-view.tsx`, `app/(console)/issuer/page.tsx`, `lib/chain/flags.ts`,
-`lib/chain/flags.test.ts`, `lib/chain/registry.ts` (+ `anchorEvents`, `isIssuer`), `abi/registry.ts`
-(+ `ISSUER_ROLE`, `hasRole`), `backend/README.md` (reason codes, AccessControl functions).
+`lib/chain/flags.test.ts`, `lib/chain/registry.ts` (+ `anchorEvents`, `readRoles`), `abi/registry.ts`,
+`backend/README.md` (reason codes, AccessControl functions).
 
 ## Step 7 — Dashboard ✅
 - `/dashboard`: stats from `api.stats` ("—" on error; "Sample data (mock mode)" label in mock mode), quick links to
@@ -85,20 +86,46 @@ Files: `components/issuer/issuer-view.tsx`, `app/(console)/issuer/page.tsx`, `li
 Files: `components/dashboard/dashboard-view.tsx`, `app/(console)/dashboard/page.tsx`,
 `components/navigation/command-palette.tsx`, `components/layout/app-shell.tsx` (placeholder text).
 
+## Step 8 — CI fix + frontend matches the contract ✅
+Contract logic untouched (`src/ProvenrelyRegistry.sol` on `main` is the source of truth).
+- CI: `forge fmt` removed whitespace on two blank lines in `test/ProvenrelyRegistry.t.sol` (lines 30, 40) — the only
+  change. Locally: `forge fmt --check` clean, `forge build --sizes` OK (solc 0.8.37; lint warnings only, about
+  `block.timestamp` comparisons), `forge test` 3/3 pass. `.gitattributes`: `*.sol text eol=lf`. Submodules initialised.
+- ABIs are generated, not hand-written: `frontend/scripts/gen-abi.mjs` reads `out/<Name>.sol/<Name>.json` →
+  `frontend/abi/*.ts`. Regenerate: `forge build` (repo root), then `cd frontend && npm run abi`. SafeSend isn't in the
+  repo yet, so `abi/safe-send.ts` stays hand-written until it is.
+- Issuer role: `ISSUER()` + `hasRole()`; admin via `DEFAULT_ADMIN_ROLE` (for the revoke rule).
+- Anchor lookup: `certificates(hash)` → timestamp 0 = not anchored, otherwise VALID with that timestamp (Verify,
+  Certificate). `readAnchoredAt()` keeps its name and callers.
+- `getFlag`: reads `(Flag f, bool active)`; Shield warns and says "Send anyway" when the contract's `active` is true.
+  The frontend's own copy of the active rule (`isActiveFlag`) was removed.
+- `CustodyLogged` timestamp field is `ts`; custody list reads it.
+- Custom errors are decoded by name with plain-language text (`lib/chain/tx.tsx`).
+- `backend/README.md` contract summary updated to the real interface (read-only summary; source is the .sol file).
+
+Files: `.gitattributes`, `test/ProvenrelyRegistry.t.sol` (fmt only), `frontend/scripts/gen-abi.mjs`,
+`frontend/package.json` (`abi` script), `frontend/abi/registry.ts` (generated), `frontend/lib/chain/{registry,flags,tx}.ts*`,
+`frontend/lib/chain/flags.test.ts`, `frontend/components/{shield/shield-view,issuer/issuer-view,proof/verify-view,
+certificate/certificate-view}.tsx`, `backend/README.md`.
+
 ## Open items
+- SafeSend contract isn't in the repo yet (Shield uses a hand-written ABI for `send` + `RecipientFlagged`).
+- `src/Counter.sol` / `script/Counter.s.sol` Foundry template files are still on `main` (contract side, left alone).
 - Contracts not deployed: registry/SafeSend addresses empty, so every chain write is untested against a real contract.
   Retest Shield (flagged + unflagged send), Issuer (flag, revoke, non-issuer wallet) and Verify (real anchor) after deploy.
 - Legacy sample-data code (`data/*`, `components/{cases,explorer,intake}/*`, `components/proof/{proof-card,hash-ring}.tsx`,
   `lib/session-seals.ts`): keep for now — clean up after the landing redesign is final (see Decisions).
 
 ## Decisions (owner)
-1. Issuer check uses OpenZeppelin AccessControl: `ISSUER_ROLE()` read once, then `hasRole(ISSUER_ROLE, address)`.
-   Both are in the placeholder ABI; no new contract function.
+1. Issuer check uses OpenZeppelin AccessControl with `hasRole`. The contract's role getter is `ISSUER()` (not
+   `ISSUER_ROLE()`), so step 8 uses `ISSUER()`; no new contract function.
 2. Reason codes 1–6, 99 are final. One exported constant (`FLAG_REASONS`), same table in `backend/README.md`.
 3. Old sample-data code: don't delete anything yet; the landing page still uses some of it and is being redesigned
    separately. Clean up once the landing page is final.
 4. Search placeholder is "Search addresses, certificates, tx hashes" only because search handles all three
    (tx hashes were added); otherwise the search box would be hidden.
+5. Contract is the source of truth: don't change contract logic from the frontend side; generate ABIs from `forge build`.
 
 ## Tests
-`cd frontend && npm test` (vitest): `lib/cert/canonical.test.ts`, `lib/chain/flags.test.ts` — 10 tests.
+`cd frontend && npm test` (vitest): `lib/cert/canonical.test.ts`, `lib/chain/flags.test.ts` — 9 tests.
+Contracts: `forge test` (repo root) — 3 tests.
