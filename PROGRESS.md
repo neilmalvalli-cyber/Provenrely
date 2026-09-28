@@ -129,3 +129,47 @@ certificate/certificate-view}.tsx`, `backend/README.md`.
 ## Tests
 `cd frontend && npm test` (vitest): `lib/cert/canonical.test.ts`, `lib/chain/flags.test.ts` — 9 tests.
 Contracts: `forge test` (repo root) — 3 tests.
+
+## Marble environment (feat/marble-environment) — plan
+Phase 1 only: a photographic marble background behind the internal app (the `(console)` route group). Landing page,
+contracts, backend and feature logic are not touched.
+
+**Stack findings.** Next 16.3 (App Router, Turbopack), React 19, Tailwind 4 (`@theme` tokens in `app/globals.css`),
+npm + `package-lock.json`, `lint` = `tsc --noEmit`, vitest. `three@0.186` is already a dependency (no r3f/drei/
+postprocessing). The console layout (`app/(console)/layout.tsx`) wraps every internal page in `AppShell`, which already
+mounts a first-pass `MarbleBackground` (runtime-only, procedural shader stone on boxes, RoomEnvironment IBL, invisible
+leaf casters). `/certificate/[id]` is a document page outside the console group and has no background. No Git LFS.
+Network: npm, PyPI and raw.githubusercontent.com are reachable; blender.org, Poly Haven and ambientCG are not.
+
+**Evaluation of the first pass.** Good bones (lazy chunk, pause when hidden/off-screen, context loss, disposal), but it
+can't reach the bar: unbevelled boxes, no GI/bounce (hemisphere light only), no contact shadows, a single PCF shadow
+map for both architecture and leaves, no floor reflections, RoomEnvironment reflections that don't belong to the
+scene, and a composition that doesn't match the reference. Kept: the mount pattern, lifecycle handling, CSS fallback
+idea. Replaced: the scene, materials, lighting and shadows.
+
+**Architecture.**
+- Blender 5.2 LTS (`pip install bpy`, headless) builds the scene from a committed script
+  (`frontend/environment/blender/build_scene.py`): bevelled walls, pillars, fluted columns, stepped platforms and a
+  portico ceiling, a second UV set for lightmaps, and Cycles bakes:
+  - `lightmap` RGB = sky + bounce irradiance (all indirect light, including the sun's bounce and AO/contact shadowing);
+  - `sunvis` = soft sun visibility from the architecture (sun lamp with a real angular diameter → true penumbrae);
+  - an HDR panorama rendered *from inside the scene* for specular IBL, so reflections show this room, not a stock HDRI.
+- Stone textures are generated (tileable, periodic noise/Voronoi in numpy, `generate_textures.py`): terrazzo aggregate,
+  crackle veining, mineral tint, roughness and normal variation. No third-party texture is needed, so no licence risk.
+- Runtime: plain Three.js in a client component, dynamically imported (no SSR), no new dependencies (r3f/drei would be
+  a second rendering stack for one canvas). MeshStandardMaterial with shader patches:
+  diffuse ambient from the baked lightmap (IBL irradiance switched off to avoid double counting), direct sun from a
+  real `DirectionalLight` for correct diffuse + specular, multiplied by baked `sunvis` (architecture shadows) and a
+  live shadow map that contains only the off-camera foliage (instanced leaves + branches; wind in a vertex shader shared
+  by the shadow depth material: sway, flutter, per-branch phase, slow irregular gusts).
+- Floor: blurred planar reflection (half-res mirror render → separable blur), roughness- and Fresnel-weighted,
+  distorted by the floor normal map. Post: SMAA, very light vignette/grain; AO is baked, so no runtime AO pass.
+- Tone mapping: compare ACES Filmic, AgX and Khronos PBR Neutral on screenshots; keep whichever keeps whites textured.
+
+**Integration.** `AppShell` keeps mounting the background (flag `NEXT_PUBLIC_MARBLE_ENVIRONMENT`, default on). A static
+poster (captured from the final scene) is shown first and when WebGL is unavailable; the canvas fades in over it.
+Dev-only preview `/lab/environment` with a debug panel (exposure, sun angle, wind, quality tier); 404 in production.
+
+**Risks.** CPU-only Cycles bakes in the container (bake time vs noise → denoiser); SwiftShader screenshots are slow
+and not representative of GPU performance; asset weight (target < 4 MB total, textures as WebP); the console's dark
+panels on a light background (keep the existing ink swap, add at most a neutral scrim).
