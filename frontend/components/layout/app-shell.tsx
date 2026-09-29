@@ -67,9 +67,11 @@ function NavItem({ href, label, icon: Icon, keys }: (typeof NAV)[number]) {
 function Sidebar() {
   const { openShortcuts } = useCommandPalette();
   return (
-    <aside className="no-print hidden w-[248px] shrink-0 self-stretch rounded-[var(--radius-card)] border border-black/[0.05] bg-[#fff] shadow-[var(--shadow-card)] lg:block">
-      {/* The card runs the full height of the page; its menu stays in view while the content scrolls. */}
-      <div className="sticky top-10 flex h-[calc(100dvh-5rem)] max-h-full flex-col p-4">
+    // The whole card is sticky: it stays in place while only the content column scrolls. 41px = page padding (20)
+    // + shell border (1) + shell padding (20), so it sticks exactly where it sits; it is one viewport tall minus that
+    // on both sides, and scrolls itself if the menu ever outgrows it.
+    <aside className="no-print sticky top-[41px] hidden h-[calc(100dvh-82px)] w-[248px] shrink-0 self-start overflow-y-auto rounded-[var(--radius-card)] border border-black/[0.05] bg-[#fff] shadow-[var(--shadow-card)] lg:block">
+      <div className="flex min-h-full flex-col p-4">
       <Link href="/" className="mb-8 px-2 pt-1 text-[#0b0b0c]">
         <Logo />
       </Link>
